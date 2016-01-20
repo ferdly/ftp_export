@@ -1,0 +1,20 @@
+name = FTP Export
+description = Exports and uploads files to an FTP server
+package = QIQgroup Tools
+core = 7.x
+
+;<NOTES> by Brad Lowry emulating commerce_order_ftp_export
+;  anything I was unsure of wanting to emulate later I commented out rather than deleted
+;</NOTES>
+
+;dependencies[] = commerce_cart
+
+; Base module files
+;files[] = commerce_authnet.module
+
+;configure = admin/commerce/config/order/export/ftp
+; Information emulated (after) added by drupal.org packaging script on 2011-10-18
+;version = "7.x-1.0-dev"
+;core = "7.x"
+;datestamp = "1318964430"; Update?
+
