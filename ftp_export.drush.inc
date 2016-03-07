@@ -4,28 +4,26 @@
  * Implements hook_drush_command().
  */
 function ftp_export_drush_command() {
-
   $items['ftp-export'] = array(
-    'description' => "Description ftp_export: \r\nComposes SQL Code to apply Auto-Entry Label Titles to current titles. Useful when there is lots of data already entered before AEL implemented, or when the configuration of EAL is tweaked.",
-    'aliases' => array('ftpx'), //don't want to collide into others
-    'arguments' => array(
-      'area' => "Entity 'Bundle' (for node read 'Content Type'). If not supplied, list of AEL enabled areas are generated to select from.",
-    ),
+    'aliases' => array('ftpx'),
     'options' => array(
-      'hello' => 'The number of items to execute for the command (smart defaults as per action, and validated).',
-      'lorem' => 'Applies an Offset of limit times lorem. The expectation is that the user leaves limit constant and increments the page, although there is no way to enforce this use (validated).',
-      'echo_options' => 'A Comma Separated Value (csv) list of entity_id values to execute for the command (validated).',
-      'nodeplode' => 'In conjunction with limit or with echo_options or on its own. Randomizes the order of the lines of code Validated.',
-      'vargetter' => 'Smart Defaults, but if you want to overload use yes or no',
-      'action' => 'compose, preview, or mask with compose being the default. This will affect the default of limit.',
-      'dev' => "Allow for skipping over the 'clean' output in favor of 'dev' output as the code progresses. This may be removed or made more useful developers not coding this module.",
-    ),
-    'examples' => array(
-      'drush ftpx --action=mask' => 'PENDING Prints the statement once with the error flag.',
-      'drush ftp_export --limit=10' => 'PENDING Prints the statement 10 times with the success flag.',
-      'drush ftpx --echo_options=10,27,125' => 'PENDING Prints the statement 10 times with the success flag.',
-    ),
+      'dep_custom' => 'an option',
+      'dep_drupal' => 'an option',
+      ),
+    'arguments' => array(
+      'custom' => 'an argument',
+      'drupal' => 'an argument',
+      ),
   );
+
+  /**
+   * Overload for Documentation and 'drush help'
+   */
+
+  $items['ftp-export']['description'] = 'A Descr of FTP-Export Drush Command';
+  $items['ftp-export']['options']['custom'] = 'A Descr of Option custom';
+  $items['ftp-export']['examples']['drush ftpx --config'] = 'PENDING Prints the statement once with the error flag.';
+  // $items['ftp-export']['arguments']['config'] => "PRIOR EXAMPLE Entity 'Bundle' (for node read 'Content Type'). If not supplied, list of AEL enabled configs are generated to select from.";
 
   return $items;
 }
@@ -33,68 +31,76 @@ function ftp_export_drush_command() {
 /**
  * Callback for the drush-demo-command command
  */
-function drush_ftp_export($area = FALSE) {
+function drush_ftp_export($config = FALSE) {
 
   // Check for existence of argument
-    $options = _area_options(); //use custom function to encapsulate
-    if (!$area) {
-        $area = drush_choice($options, dt('For which Bundle would you like to generate \'Auto Enity-Label Back-Log\' SQL Code?'));
+    $arguments = _config_arguments(); //use custom function to encapsulate
+    if (!$config ) {
+        $config = drush_choice($arguments, dt('For which ftp?'));
+    }
+
+    if (!$config) {
+      drush_print("Buh-Bye Custom 'Cancel' logic");
+      return;
+    }
+
+    $ctype = '';
+    if (ctype_alpha($config)) {
+      $ctype = 'ctype IS alpha';
+    }
+    elseif (ctype_digit($config)) {
+      $ctype = 'ctype IS digit';
+    }elseif (1 == 2) {
+      $to_print = "YIKES!: " . print_r($config, TRUE);
+      drush_print($to_print);
+      return;
     }
 
   // Check for correct argument
-  $correct_args = array_keys($options);
-  if (!in_array($area, $correct_args)) {
-    $string = _area_options('string');
-    /**
-     * @circleback = how to escape quotes within dt?
-     * it's really wrong to circumvent dt() like this
-     */
-    return drush_set_error(dt('"@type" is not a valid area. ',
-      array('@type' => $area)) . $string);
+  $to_print = "NOT YET SET Line:" . __LINE__ . "\r\n";
+  $correct_args = array_keys($arguments);
+  if (!in_array($config, $correct_args)) {
+    $string = _config_arguments('string');
+    return drush_set_error(dt('"@type" is not a valid config . ',
+      array('@type' => $config )) . $string);
+      $to_print = "Buh-Bye Custom Line:" . __LINE__ . "\r\n";
+  }
+  switch ($config) {
+    case 'custom':
+      require_once 'src/ftp_export_config.inc';
+      $to_print = print_r($ftp_export_config_these, TRUE);
+      break;
+    case 'drupal':
+      // require_once 'src/ftp_export_config.inc';
+      // $to_print = print_r($ftp_export_config_these, TRUE);
+      $to_print = "Option {$config}: Is not working at this time";
+      break;
+
+    default:
+      $to_print .= "print_r \r\n" . print_r($config, TRUE);
+      // $to_print = "Option {$config}: Is not supported and is not working at this time";
+      break;
   }
 
-  // Option
-  // loop through array of supported options
-  /**
-   * @circleback can this be gathered from ftp_export_drush_command()
-   */
-  // $area = $area;//KLUDGE
-  $supported_option_array = array(
-    'action',
-    'who',
-    'vocab',
-    'alt_echo',
-    'rand',
-    'indent',
-    'dev',
-    );
-  $supported_boolean_options_array = array(
-    'rand',
-    'indent',
-    'dev',
-    );
-  foreach ($supported_option_array as $index => $option) {
-    $option = strtolower($option);//maybe enforce case sensitivity
-    $$option = drush_get_option($option, 777);
-    if ($$option == 777) {
-      if (in_array($option, $supported_boolean_options_array)) {
-        $$option = 1;
-      }
-      $$option = $option != 'action'?$$option:NULL;
-    }
-    if ($$option != 777) {
-      $key = $option == 'action'?'':'option_';
-      $key .= str_replace('-', '_', $option);
-      $additional_option_array[$key] = $$option;
-    }
+  if (!empty($ctype)) {
+    drush_print($ctype);
   }
-  /**
-   * @todo validate, unpack here? I think in object method
-   * @circleback remove application of empty $$option to $additional_option_array
-   */
-  // drush_print($area);
-  // return;
-  _drush_execute_ftpx($area, $action, $additional_option_array);
-  // _drush_execute_ftpx($area, $action);
-} //END function drush_ftp_export($area = FALSE)
+  drush_print($config);
+  drush_print($to_print);
+  return;
+  // _drush_execute_ftpx($config , $action, $additional_option_array);
+  // _drush_execute_ftpx($config , $action);
+} //END function drush_ftp_export($config = FALSE)
 
+function _config_arguments($return_type = 'array') {
+  $arguments = array(
+    'custom' => 'arg: custom',
+    'drupal' => 'arg: drupal',
+    );
+  if ($return_type == 'array') {
+    return $arguments;
+  }
+  if ($return_type == 'string') {
+    return 'String for Error Code';
+  }
+}
