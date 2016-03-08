@@ -35,12 +35,10 @@ function ftp_export_drush_command() {
 /**
  * Callback for the drush-demo-command command
  */
-// $arguments = $items['ftp-export']['arguments'];
-$arguments = array('custom', 'combo', 'core',);
 function drush_ftp_export($ccc = FALSE, $arguments = FALSE) {
 
   // Check for existence of argument
-    $arguments = _config_arguments($arguments); //use custom function to encapsulate
+    $arguments = _config_arguments(); //use custom function to encapsulate
     if (!$ccc ) {
         $ccc = drush_choice($arguments, dt('For which ftp?'));
     }
@@ -73,8 +71,10 @@ function drush_ftp_export($ccc = FALSE, $arguments = FALSE) {
   }
   switch ($ccc) {
     case 'custom':
-      require_once 'src/ftp_export_config.inc';
-      $to_print = print_r($ftp_export_config_these, TRUE);
+      $to_print = '';
+      $to_print .= " Switch: {$ccc};";
+      $to_print .= ftp_export_drush__custom ($ccc);
+      $to_print .= " Argument: '{$ccc}'; Response: Is not working at this time;";
       break;
     case 'combo':
       $to_print = "Argument '{$ccc}': Is not working at this time";
@@ -88,7 +88,7 @@ function drush_ftp_export($ccc = FALSE, $arguments = FALSE) {
       // $to_print = "Argument {$ccc}: Is not supported and is not working at this time";
       break;
   }
-
+  $to_print = trim($to_print);
   if (!empty($ctype)) {
     drush_print($ctype);
   }
@@ -99,15 +99,15 @@ function drush_ftp_export($ccc = FALSE, $arguments = FALSE) {
   // _drush_execute_ftpx($ccc , $action);
 } //END function drush_ftp_export($ccc = FALSE)
 
-function _config_arguments($arguments_param = FALSE, $return_type = 'array') {
-  if (is_array($arguments_param)) {
-    $arguments = $arguments_param;
-  }else {
-    $arguments = array(
-      'custom' => 'arg: x_custom',
-      'drupal' => 'arg: x_drupal',
-      );
-  }
+function _config_arguments($return_type = 'array') {
+  /**
+   * @circleback - why can't I pass in/acces $items[drush-command][arguments]?
+   */
+  $arguments = array();
+  $arguments['custom'] = "Switch to the Custom Expression of the FTP mechanism";
+  $arguments['core'] = "Switch to the Core Expression of the FTP mechanism (via includes/filetranser)";
+  $arguments['combo'] = "Switch to the Combo Expression of the FTP mechanism (a 'custom' call of the 'core' mechanism)";
+
   if ($return_type == 'array') {
     return $arguments;
   }

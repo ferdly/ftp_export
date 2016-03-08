@@ -1,5 +1,13 @@
 <?php
 
+function ftp_export_drush__custom ($ccc = FALSE) {
+  return ' Function: ' . __FUNCTION__ . ';';
+  // require_once 'src/ftp_export_config.inc';
+  // return print_r($ftp_export_config_these, TRUE);
+}
+
+
+
 /**
  * Implements hook_menu().
  */
