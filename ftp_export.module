@@ -6,6 +6,14 @@ function ftp_export_drush__custom ($ccc = FALSE) {
   // return print_r($ftp_export_config_these, TRUE);
 }
 
+function ftp_export_drush__combo ($ccc = FALSE) {
+  return ' Function: ' . __FUNCTION__ . ';';
+}
+
+function ftp_export_drush__core ($ccc = FALSE) {
+  return ' Function: ' . __FUNCTION__ . ';';
+}
+
 
 
 /**
