@@ -78,7 +78,7 @@ function _gather_option_array($boolean_option_array = array(), $custom_option_ar
   $option_array = array();
   _gather_boolean_options($option_array, $boolean_option_array);
   _gather_custom_options($option_array, $custom_option_array);
-  $option_array['test_option01'] = 'Can be used as a way to set a \'preference\' that can later be coded *as* an option';
+  $option_array['test_option01'] = 'Can be used as a way to set a \'preference\' that can be coded *as* an option later';
   return $option_array;
 }
 
