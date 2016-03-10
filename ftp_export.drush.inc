@@ -77,10 +77,16 @@ function drush_ftp_export($ccc = FALSE, $arguments = FALSE) {
       $to_print .= " Argument: '{$ccc}'; Response: Is not working at this time;";
       break;
     case 'combo':
-      $to_print = "Argument '{$ccc}': Is not working at this time";
+      $to_print = '';
+      $to_print .= " Switch: {$ccc};";
+      $to_print .= ftp_export_drush__combo ($ccc);
+      $to_print .= " Argument: '{$ccc}'; Response: Is not working at this time;";
       break;
     case 'core':
-      $to_print = "Argument '{$ccc}': Is not working at this time";
+      $to_print = '';
+      $to_print .= " Switch: {$ccc};";
+      $to_print .= ftp_export_drush__core ($ccc);
+      $to_print .= " Argument: '{$ccc}'; Response: Is not working at this time;";
       break;
 
     default:
@@ -105,8 +111,8 @@ function _config_arguments($return_type = 'array') {
    */
   $arguments = array();
   $arguments['custom'] = "Switch to the Custom Expression of the FTP mechanism";
-  $arguments['core'] = "Switch to the Core Expression of the FTP mechanism (via includes/filetranser)";
   $arguments['combo'] = "Switch to the Combo Expression of the FTP mechanism (a 'custom' call of the 'core' mechanism)";
+  $arguments['core'] = "Switch to the Core Expression of the FTP mechanism (via includes/filetranser)";
 
   if ($return_type == 'array') {
     return $arguments;

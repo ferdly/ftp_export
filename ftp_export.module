@@ -1,12 +1,65 @@
 <?php
 
-function ftp_export_drush__custom ($ccc = FALSE) {
-  return ' Function: ' . __FUNCTION__ . ';';
+function ftp_export_drush__custom () {
+  $boolean_option_array = array('dev');
+  $option_array = _gather_boolean_options($boolean_option_array);
+  $custom_option_array = array('repeat');
+  // $option_array .= _gather_custom_options($custom_option_array);
+  foreach ($option_array as $key => $value) {
+    $$key = $value;
+  }
+  $repeat_string = ' REPEAT: ' . $repeat . ';';
+  $dev_string = ' DEV: ';
+  $dev_string .= $dev ? 'True':'False';
+  $dev_string .= ';';
+  $dev_string .= $repeat_string;
+
+  return $dev_string . ' Function: ' . __FUNCTION__ . ';';
   // require_once 'src/ftp_export_config.inc';
   // return print_r($ftp_export_config_these, TRUE);
 }
 
+function ftp_export_drush__combo ($option_array = FALSE) {
+  $supported_option_array= array();
+  return ' Function: ' . __FUNCTION__ . ';';
+}
 
+function ftp_export_drush__core ($option_array = FALSE) {
+  $supported_option_array= array();
+  return ' Function: ' . __FUNCTION__ . ';';
+}
+
+function _gather_boolean_options($boolean_option_array = array()) {
+  $option_array = array();
+  foreach ($boolean_option_array as $index => $option) {
+    // $option_array[$option] = drush_get_option($option, FALSE);
+    $value = drush_get_option($option, FALSE);
+    $value = $value === TRUE ? TRUE : FALSE;
+    $option_array[$option] = $value;
+  }
+  return $option_array;
+}
+
+function _gather_custom_options($custom_option_array = array()) {
+  $option_array = array();
+  if (empty($custom_option_array)) {
+    return $option_array;
+  }
+  foreach ($custom_option_array as $index => $option) {
+    // each $option as individual criteria
+    $is_valid = FALSE;
+    if ($option == 'repeat') {
+      $value = drush_get_option($option, 1);
+      $value = ctype_digit($value) ? $value : 1;
+      $is_valid = TRUE;
+      #\_ Example, validate that it return alpha non empty else empty string
+    }
+    if ($is_valid) {
+      $option_array[$option] = $value;
+    }
+  }
+  return $option_array;
+}
 
 /**
  * Implements hook_menu().
