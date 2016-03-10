@@ -1,54 +1,121 @@
 <?php
 
 function ftp_export_drush__custom () {
+  $buffer = '';
+
+  $function_string = ' Function: ' . __FUNCTION__ . ';';
   $boolean_option_array = array('dev');
-  $option_array = _gather_boolean_options($boolean_option_array);
-  $custom_option_array = array('repeat');
-  // $option_array .= _gather_custom_options($custom_option_array);
+  $custom_option_array = array('step');
+  $option_array = _gather_option_array($boolean_option_array, $custom_option_array);
+  // $buffer .= $function_string;
+  // $buffer .= ' Options: ' . print_r($option_array, TRUE);
+  // return $buffer; //un-comment this and two above to peek into $options
   foreach ($option_array as $key => $value) {
     $$key = $value;
   }
-  $repeat_string = ' REPEAT: ' . $repeat . ';';
   $dev_string = ' DEV: ';
   $dev_string .= $dev ? 'True':'False';
   $dev_string .= ';';
-  $dev_string .= $repeat_string;
+  $buffer .= $dev_string;
+  $step_string = ' STEP: ' . $step . ';';
+  $buffer .= $step_string;
+  $buffer .= $function_string;
 
-  return $dev_string . ' Function: ' . __FUNCTION__ . ';';
+  return $buffer;
   // require_once 'src/ftp_export_config.inc';
   // return print_r($ftp_export_config_these, TRUE);
 }
 
-function ftp_export_drush__combo ($option_array = FALSE) {
-  $supported_option_array= array();
-  return ' Function: ' . __FUNCTION__ . ';';
+function ftp_export_drush__combo () {
+  $buffer = '';
+
+  $function_string = ' Function: ' . __FUNCTION__ . ';';
+  $boolean_option_array = array('dev');
+  $custom_option_array = array('step');
+  $option_array = _gather_option_array($boolean_option_array, $custom_option_array);
+  $buffer .= $function_string;
+  $buffer .= ' Options: ' . print_r($option_array, TRUE);
+  return $buffer; //un-comment this and two above to peek into $options
+  foreach ($option_array as $key => $value) {
+    $$key = $value;
+  }
+  $dev_string = ' DEV: ';
+  $dev_string .= $dev ? 'True':'False';
+  $dev_string .= ';';
+  $buffer .= $dev_string;
+  $step_string = ' STEP: ' . $step . ';';
+  $buffer .= $step_string;
+  $buffer .= $function_string;
+
+  return $buffer;
 }
 
-function ftp_export_drush__core ($option_array = FALSE) {
-  $supported_option_array= array();
-  return ' Function: ' . __FUNCTION__ . ';';
+function ftp_export_drush__core () {
+  $buffer = '';
+
+  $function_string = ' Function: ' . __FUNCTION__ . ';';
+  $boolean_option_array = array('dev');
+  $custom_option_array = array('step');
+  $option_array = _gather_option_array($boolean_option_array, $custom_option_array);
+  // $buffer .= $function_string;
+  // $buffer .= ' Options: ' . print_r($option_array, TRUE);
+  // return $buffer; //un-comment this and two above to peek into $options
+  foreach ($option_array as $key => $value) {
+    $$key = $value;
+  }
+  $dev_string = ' DEV: ';
+  $dev_string .= $dev ? 'True':'False';
+  $dev_string .= ';';
+  $buffer .= $dev_string;
+  $step_string = ' STEP: ' . $step . ';';
+  $buffer .= $step_string;
+  $buffer .= $function_string;
+
+  return $buffer;
 }
 
-function _gather_boolean_options($boolean_option_array = array()) {
+function _gather_option_array($boolean_option_array = array(), $custom_option_array = array()) {
   $option_array = array();
+  _gather_boolean_options($option_array, $boolean_option_array);
+  _gather_custom_options($option_array, $custom_option_array);
+  $option_array['test_option01'] = 'Can be used as a way to set a \'preference\' that can later be coded *as* an option';
+  return $option_array;
+}
+
+function _gather_boolean_options(&$option_array, $boolean_option_array = array()) {
+  $string_too = TRUE;// comment out line to turn off
+  $string_too = $string_too === TRUE ? TRUE : FALSE;
+  if (!is_array($option_array)) {
+    return;
+  }
+  if (empty($boolean_option_array)) {
+    return;
+  }
   foreach ($boolean_option_array as $index => $option) {
     // $option_array[$option] = drush_get_option($option, FALSE);
     $value = drush_get_option($option, FALSE);
     $value = $value === TRUE ? TRUE : FALSE;
     $option_array[$option] = $value;
+    if ($string_too === TRUE) {
+      $option = $option . '_string';
+      $value = $value === TRUE ? 'TTRUE' : 'FFALSE';
+          $option_array[$option] = $value;
+    }
   }
   return $option_array;
 }
 
-function _gather_custom_options($custom_option_array = array()) {
-  $option_array = array();
+function _gather_custom_options(&$option_array, $custom_option_array = array()) {
+  if (!is_array($option_array)) {
+    return;
+  }
   if (empty($custom_option_array)) {
-    return $option_array;
+    return;
   }
   foreach ($custom_option_array as $index => $option) {
     // each $option as individual criteria
     $is_valid = FALSE;
-    if ($option == 'repeat') {
+    if ($option == 'step') {
       $value = drush_get_option($option, 1);
       $value = ctype_digit($value) ? $value : 1;
       $is_valid = TRUE;
