@@ -1,5 +1,21 @@
 <?php
 
+/**
+ * DRUSH Below
+ */
+function _drush_execute_ftpx($area = NULL, $action = NULL, $additional_option_array = array()) {
+    require_once 'src/ftp_export_config.inc';
+    $test_output = print_r($ftp_export_config_these, TRUE);
+    $test_output_array = array(
+      'Feather'=>'Named for his Tail',
+      'Marcy'=>'Named for Mt. Marcy in the Adirondacks',
+      'Chester'=>'Named for Chester Creek',
+      'Marais'=>'Named for Grand Marais on the North Shore of Lake Superior',
+    );
+    // $test_output = print_r($test_output_array, TRUE);
+  drush_print($test_output);
+}
+
 function ftp_export_drush__custom () {
   $buffer = '';
 
@@ -20,10 +36,12 @@ function ftp_export_drush__custom () {
   $step_string = ' STEP: ' . $step . ';';
   $buffer .= $step_string;
   $buffer .= $function_string;
+  require_once 'src/ftp_export_config.inc';
+  if ($dev === TRUE) {
+    $buffer .= print_r($ftp_export_config_these, TRUE);
+  }
 
   return $buffer;
-  // require_once 'src/ftp_export_config.inc';
-  // return print_r($ftp_export_config_these, TRUE);
 }
 
 function ftp_export_drush__combo () {
@@ -97,6 +115,8 @@ function _gather_boolean_options(&$option_array, $boolean_option_array = array()
     $value = $value === TRUE ? TRUE : FALSE;
     $option_array[$option] = $value;
     if ($string_too === TRUE) {
+      #\_ because 'drush_print' and/or 'print_r' does NOT return FALSE as such
+      #  \_ also TRUE response '1' is ambiguous as far as '=='' vs '===''
       $option = $option . '_string';
       $value = $value === TRUE ? 'TTRUE' : 'FFALSE';
           $option_array[$option] = $value;
@@ -442,19 +462,4 @@ function commerce_order_ftp_export_get_full_order_data($order) {
   $vars['user'] = user_load($order->uid['und']);
 
   return $vars;
-}
-/**
- * DRUSH Below
- */
-function _drush_execute_ftpx($area = NULL, $action = NULL, $additional_option_array = array()) {
-    require_once 'src/ftp_export_config.inc';
-    $test_output = print_r($ftp_export_config_these, TRUE);
-    $test_output_array = array(
-      'Feather'=>'Named for his Tail',
-      'Marcy'=>'Named for Mt. Marcy in the Adirondacks',
-      'Chester'=>'Named for Chester Creek',
-      'Marais'=>'Named for Grand Marais on the North Shore of Lake Superior',
-    );
-    // $test_output = print_r($test_output_array, TRUE);
-  drush_print($test_output);
 }
