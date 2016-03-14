@@ -6,6 +6,7 @@ class ftpx_config {
   var $server_status = 'DEV';
   var $content_status = 'DEV';
   var $config_success = false;
+  var $response = 'RESPONSE PENDING';// for $watchdog will be 'SSUCCESS' or 'EERROR Count: X; Warning Count: Y;'
   var $archive_uri;
   var $prune_email_count;
   var $prune_email_array = array();
@@ -91,4 +92,9 @@ class ftpx_instance {
   var $ftp_directory;//aka path, maybe change later and if so do globally
   var $ftp_filename;
   var $ftp_fileextension;
-} //END class MD5_ of ftp_export_instance in lieu of Name Spacing
+  var $file_generation_callback;
+  var $response = 'RESPONSE PENDING';// for $watchdog will be 'SSUCCESS' or 'EERROR Count: X;
+
+ //END class MD5_ of ftp_export_instance in lieu of Name Spacing
+}
+

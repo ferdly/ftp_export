@@ -14,12 +14,13 @@ function _drush_execute_ftpx($area = NULL, $action = NULL, $additional_option_ar
     );
     $steps = array();
     $steps['1.0'] = 'instantiate object';
-    $steps['2.0'] = 'generate file(s) to transfer PUT IN ftp_export_config.inc';
-    $steps['3.0'] = 'FTP file(s)';
+    //$this MEANS $ftp_export_instance
+    $steps['2.0'] = 'generate file(s) to transfer BY $this->file_generation_callback';
+    $steps['3.0'] = 'FTP file(s) with WatchDog via $this->response';
     $steps['4.0'] = 'Archive Local Files';
-    $steps['5.0'] = 'Prune Email Local Files if COUNT > 180';//as part of config
-    $steps['5.0'] = 'Prune Email DEV Local Files if COUNT > 360';//as part of config
-    $steps['5.0'] = 'Email DEV on ANY EERROR';
+    $steps['5.0'] = 'Prune Email Local Files if COUNT > 180 days';//as part of config
+    $steps['6.0'] = 'Prune Email DEV Local Files if COUNT > 360 days';//as part of config
+    $steps['7.0'] = 'Email DEV on ANY EERROR determined by $this->response != SSUCCESS';
     return print_r($test_output_array, TRUE);
     // $test_output = print_r($test_output_array, TRUE);
   // drush_print($test_output);
