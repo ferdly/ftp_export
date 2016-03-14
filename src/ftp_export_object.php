@@ -11,23 +11,44 @@ class ftpx_config {
   }
   public function status_normalize()
   {
+    $supported_status_array = array(
+      'EERROR' => array('EERROR'),
+      'DEV' => array(
+        'DEV',
+        'DEVEL',
+        'DEVELOPMENT',
+        ),
+      'STAGING' => array(
+        'STAGING',
+        'STAGE',
+        'TEST',
+        'TESTING',
+        ),
+      'PROD' => array(
+        'PROD',
+        'PRODUCTION',
+        'LIVE',
+        ),
+      );
+
     $status = $this->server_status;
-    $supported_status_array = array('EERROR','DEV','STAGING','PROD',);
-    $status = $this->status;
-    $status = $status == 'DEVELOPMENT'?'DEV':$status;
-    $status = $status == 'STAGE'?'STAGING':$status;
-    $status = $status == 'STAGE'?'STAGING':$status;
-    $status = $status == 'PRODUCTION'?'PROD':$status;
-    $status = in_array($status, $supported_status_array)?$status:'EERROR';
+    foreach ($supported_status_array as $final_status => $option_array ) {
+      foreach ($option_array as $key => $option) {
+        if ($status == $option) {
+          $status = $final_status;
+        }
+      }
+    }
     $this->server_status = $status;
+
     $status = $this->content_status;
-    $supported_status_array = array('EERROR','DEV','STAGING','PROD',);
-    $status = $this->status;
-    $status = $status == 'DEVELOPMENT'?'DEV':$status;
-    $status = $status == 'STAGE'?'STAGING':$status;
-    $status = $status == 'STAGE'?'STAGING':$status;
-    $status = $status == 'PRODUCTION'?'PROD':$status;
-    $status = in_array($status, $supported_status_array)?$status:'EERROR';
+    foreach ($supported_status_array as $final_status => $option_array ) {
+      foreach ($option_array as $key => $option) {
+        if ($status == $option) {
+          $status = $final_status;
+        }
+      }
+    }
     $this->content_status = $status;
   }
 
