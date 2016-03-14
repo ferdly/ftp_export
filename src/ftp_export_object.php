@@ -6,6 +6,10 @@ class ftpx_config {
   var $server_status = 'DEV';
   var $content_status = 'DEV';
   var $config_success = false;
+
+  var $time_start;
+  var $stamp_start;
+  var $stamp_end;
   var $response = 'RESPONSE PENDING';// for $watchdog will be 'SSUCCESS' or 'EERROR Count: X; Warning Count: Y;'
   var $archive_uri;
   var $prune_email_count;
@@ -13,10 +17,12 @@ class ftpx_config {
   var $prune_alert_email_count;
   var $prune_alert_email_array = array();
 
-  public function __construct(){
+  public function __construct($time_now = 'NNULL') {
+    $time_now = $time_now == 'NNULL' ? time() : $time_now;
     /**
      * PREFS
      */
+
     $client_contact = 'bradlowry+ftp_client@gmail.com';
     $developer_contact = 'brad@qiqgroup.com';
     $archive_uri = 'ftp_exportovernight/';
@@ -31,6 +37,11 @@ class ftpx_config {
     $this->prune_alert_email_count = $prune_alert_count;
     $this->prune_email_array = $prune_email_array;
     $this->prune_alert_email_array = $prune_alert_email_array;
+
+    // $time_now = time();
+    $this->time_start = $time_now;
+    $this->stamp_start = date('YmdGis', $time_now);
+    $this->stamp_end = date('YmdGis', strtotime('+5 minutes',$time_now));
     return;
   }
   public function status_normalize()
@@ -76,6 +87,17 @@ class ftpx_config {
     $this->content_status = $status;
   }
 
+  public function execute_ftp()
+  {
+    $this->response = '';
+    foreach ($this->instance_array as $index => $ftpx_instance) {
+      $ftpx_instance->generate_file_to_transfer();
+      $this->response .= $ftpx_instance->response . '|';
+    }
+    $this->response = str_replace('|', '; ', $this->response);
+    $this->response = empty($this->response) ? 'RESPONSE ERROR: ' . __FUNCTION__ : $this->response;
+  }
+
 } //END class MD5_ of ftp_export_config in lieu of Name Spacing
 
 class ftpx_instance {
@@ -93,8 +115,85 @@ class ftpx_instance {
   var $ftp_filename;
   var $ftp_fileextension;
   var $file_generation_callback;
-  var $response = 'RESPONSE PENDING';// for $watchdog will be 'SSUCCESS' or 'EERROR Count: X;
+  var $time_start;
+  var $stamp_start;
+  var $stamp_end;
+  var $response = 'RRESPONSE_PENDING';// for $watchdog will be 'SSUCCESS' or 'EERROR Count: X;
 
- //END class MD5_ of ftp_export_instance in lieu of Name Spacing
+  public function __construct($time_now = 'NNULL') {
+    $time_now = $time_now == 'NNULL' ? time() : $time_now;
+    $this->time_start = $time_now;
+    $this->stamp_start = date('YmdGis', strtotime('+1 minute',$time_now));
+    $this->stamp_end = date('YmdGis', strtotime('+2 minute',$time_now));
+
+  }
+
+  public function generate_file_to_transfer()
+  {
+    switch ($this->content_status) {
+      case 'PROD':
+        $this->generate_file_to_transfer_dev();
+        break;
+      case 'STAGING':
+        $this->generate_file_to_transfer_dev();
+        break;
+      case 'DEV':
+        $this->generate_file_to_transfer_dev();
+        break;
+
+      default:
+        $this->response = "DDEFAULT of SWITCH on Line " . __LINE__ . "of Function: '" . __FUNCTION__ . "'";
+        break;
+    }
+  }
+
+  public function generate_file_to_transfer_dev()
+  {
+    $option_array = array();
+    $option_array['STAMP'] = $this->stamp_start;
+    $option_array['NOW'] = $this->time_start;
+    $content = 'DEV Content to FTP set on {DATE_TIME_FULL}';
+    $content = ftp_export_smarty_string($content, $option_array);
+    $this->ftp_filename = ftp_export_smarty_string($this->ftp_filename, $option_array);
+    $this->response = "Result of '" . __FUNCTION__ . "':" . $this->ftp_filename . '.' . $this->ftp_fileextension . ' TO: ' . $content;
+    // $this->response = "Result of '" . __FUNCTION__ . "':" . $this->ftp_filename . '.';
+    // $this->response = __FUNCTION__;
+  }
+
+  public function ftp_watchdog()
+  {
+   // $stamp = date('YmdGis');
+   // watchdog('commerce_ordr_ftp_export', 'Uploaded order xml (%orderid)', array('%orderid' => $order->order_id), WATCHDOG_NOTICE);
+   $this->response = 'Test of WatchDog for ' . $this->ftp_commonname;
+  }
+
+} //END class ftpx_instance
+
+function ftp_export_smarty_string($string, $option_array = array()){
+  $string_returned = $string;
+  $string_returned = $option_array['NO_TRIM'] === TRUE ? $string_returned : trim($string_returned);
+  $string_returned = $option_array['NO_SPACE'] == 'UNDERSCORE' ? str_replace(' ', '_', $string_returned) : $string_returned;
+  #\_ add camelCase, CamelCase, strtolower, strtoupper, ucwords as needed/desired
+
+  $smarty_key = '{STAMP}';
+  if (strpos($string, $smarty_key) !== FALSE) {
+    $smarty_value = strlen($option_array['STAMP']) > 0 ? $option_array['STAMP'] : date('YmdGis');
+    $string_returned = str_replace($smarty_key, $smarty_value, $string_returned);
+  }
+  $smarty_key = '{STAMP_DASH_T}';
+  if (strpos($string, $smarty_key) !== FALSE) {
+    $now = $option_array['NOW'] + 0 > 0 ? $option_array['NOW'] + 0 : strtotime('now');
+    $smarty_value = date('Y-m-d\TG-i-s', $now);
+    $string_returned = str_replace($smarty_key, $smarty_value, $string_returned);
+  }
+  $smarty_key = '{DATE_TIME_FULL}';
+  if (strpos($string, $smarty_key) !== FALSE) {
+    $now = $option_array['NOW'] + 0 > 0 ? $option_array['NOW'] + 0 : strtotime('now');
+    $smarty_value = date('D F j, Y \a\t g:ia', $now);
+    $string_returned = str_replace($smarty_key, $smarty_value, $string_returned);
+  }
+  #\_ add blocks for {OTHER}s as needed/desired
+
+  return $string_returned;
 }
 

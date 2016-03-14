@@ -23,7 +23,9 @@ $content_status = in_array(@$content_status, $supported_status_array) ? $content
 
 require_once 'ftp_export_object.php';
 
-$ftp_export_config_these = new ftpx_config();
+// $time_now_or_other = time();
+$time_now_or_other = strtotime('+1 month');//For Testing
+$ftp_export_config_these = new ftpx_config($time_now_or_other);
 // $server_status = 'DEVELOPMENT';
 // $content_status = 'DEVEL';
 
@@ -31,8 +33,8 @@ $ftp_export_config_these->server_status = $server_status;
 $ftp_export_config_these->content_status = $content_status;
 $ftp_export_config_these->status_normalize();
 
-
-$ftp_export_instance_this =  new ftpx_instance();
+// $time_now_or_other = strtotime('+1 minute',$time_now_or_other);
+$ftp_export_instance_this =  new ftpx_instance($time_now_or_other);
 $commonname = "Carsoup";
 $ftp_export_instance_this->ftp_commonname = $commonname;
 // $which_array = array('from', 'to');
@@ -57,7 +59,8 @@ if ($ftp_export_config_these->content_status !== $ftp_export_instance_this->cont
 $ftp_export_config_these->instance_array[] = $ftp_export_instance_this;
 unset($ftp_export_instance_this);
 
-$ftp_export_instance_this =  new ftpx_instance();
+$time_now_or_other = strtotime('+2 minute',$time_now_or_other);
+$ftp_export_instance_this =  new ftpx_instance($time_now_or_other);
 $commonname = "FindCars";
 $ftp_export_instance_this->ftp_commonname = $commonname;
 // $which_array = array('from', 'to');
@@ -116,9 +119,8 @@ function _server_status_config(ftpx_instance $ftp_export_instance_this, $commonn
             $ftp_export_instance_this->ftp_password = "S0m3P@ssw0rd";
             $ftp_export_instance_this->ftp_port = 21;
             $ftp_export_instance_this->ftp_directory = "";
-            $ftp_export_instance_this->ftp_filename = "htmotors";
-            $ftp_export_instance_this->ftp_filename = "htmotors";
-            $ftp_export_instance_this->ftp_fileextension = "csv";
+            $ftp_export_instance_this->ftp_filename = "CS_HTMotors_{STAMP_DASH_T}";
+            $ftp_export_instance_this->ftp_fileextension = "txt";
             $ftp_export_instance_this->file_generation_callback = "carsoup-export-csv";//path to Views Export
             break;
 
@@ -130,9 +132,8 @@ function _server_status_config(ftpx_instance $ftp_export_instance_this, $commonn
             $ftp_export_instance_this->ftp_password = "S0m3P@ssw0rd";
             $ftp_export_instance_this->ftp_port = 21;
             $ftp_export_instance_this->ftp_directory = "";
-            $ftp_export_instance_this->ftp_filename = "htmotors";
-            $ftp_export_instance_this->ftp_filename = "htmotors";
-            $ftp_export_instance_this->ftp_fileextension = "csv";
+            $ftp_export_instance_this->ftp_filename = "qiq_inventory";
+            $ftp_export_instance_this->ftp_fileextension = "txt";
             $ftp_export_instance_this->file_generation_callback = "findcars-export-csv";//path to Views Export
             break;
 
