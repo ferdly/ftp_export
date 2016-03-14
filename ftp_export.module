@@ -4,21 +4,31 @@
  * DRUSH Below
  */
 function _drush_execute_ftpx($area = NULL, $action = NULL, $additional_option_array = array()) {
-    require_once 'src/ftp_export_config.inc';
-    $test_output = print_r($ftp_export_config_these, TRUE);
+    // require_once 'src/ftp_export_config.inc';
+    // $test_output = print_r($ftp_export_config_these, TRUE);
     $test_output_array = array(
       'Feather'=>'Named for his Tail',
       'Marcy'=>'Named for Mt. Marcy in the Adirondacks',
-      'Chester'=>'Named for Chester Creek',
+      'Chester'=>'Named for Chester Creek which runs through Duluth',
       'Marais'=>'Named for Grand Marais on the North Shore of Lake Superior',
     );
+    $steps = array();
+    $steps['1.0'] = 'instantiate object';
+    $steps['2.0'] = 'generate file(s) to transfer PUT IN ftp_export_config.inc';
+    $steps['3.0'] = 'FTP file(s)';
+    $steps['4.0'] = 'Archive Local Files';
+    $steps['5.0'] = 'Prune Email Local Files if COUNT > 180';//as part of config
+    $steps['5.0'] = 'Prune Email DEV Local Files if COUNT > 360';//as part of config
+    $steps['5.0'] = 'Email DEV on ANY EERROR';
+    return print_r($test_output_array, TRUE);
     // $test_output = print_r($test_output_array, TRUE);
-  drush_print($test_output);
+  // drush_print($test_output);
 }
 
 function ftp_export_drush__custom () {
   $buffer = '';
 
+  $buffer .= _drush_execute_ftpx();
   $function_string = ' Function: ' . __FUNCTION__ . ';';
   $boolean_option_array = array('dev');
   $custom_option_array = array('step');
@@ -149,6 +159,135 @@ function _gather_custom_options(&$option_array, $custom_option_array = array()) 
 }
 
 /**
+ * BELOW IS ORIGINAL
+ * local source => /Users/bradthorntonlowry/Documents/BradProfessional/KnowledgeBase/Drupal/Views/views_export/pages/pages_task/task_ftp_results/PokeAroundInModules/commerce_order_ftp_export
+ *
+ * - will Remove 'commerce_' prefex when rewritten for this purpose.
+ */
+
+/**
+ * RE-ORDER Updated for ftp_export below
+ * \_ in order of their being re-tooled
+ */
+
+/**
+ * Implements hook_rules_action_info().
+ *
+ * adds a rule action to export and upload an order and set status to 'processing'
+ */
+function ftp_export_rules_action_info() {
+  $actions = array();
+
+  $actions['ftp_export_upload'] = array(
+    'label' => t('Export/Upload This'),
+    // 'parameter' => array(
+    //   'commerce_order' => array(
+    //     'type' => 'commerce_order',
+    //     'label' => t('Order to export/upload'),
+    //   ),
+    // ),
+    'group' => t('FTP Export This'),
+    'callbacks' => array(
+      'execute' => 'ftp_export_upload',
+    ),
+  );
+
+  return $actions;
+}
+
+/**
+ * exports/uploads an order and updates status to Processing
+ * Rules action
+ */
+function ftp_export_upload($order) {
+  //export order to xml (string)
+  $orderxml = commerce_order_ftp_export_export_order($order);
+
+  //save xml to temporary file
+  $orderfile = file_unmanaged_save_data($orderxml, "temporary://order-" . $order->order_id . ".xml");;
+
+  //if the file saved correctly
+  if ($orderfile) {
+    watchdog('commerce_ordr_ftp_export', 'exported order xml (%savedfile)', array('%savedfile' => $orderfile), WATCHDOG_NOTICE);
+  }
+  else {
+    watchdog('commerce_ordr_ftp_export', 'error exporting order xml (order id = %orderid)', array('%orderid' => $order->order_id), WATCHDOG_ERROR);
+    return;
+  }
+  try {
+    //upload file to ftp
+    $ftp_server = variable_get('order_ftp_export_ftp_host');
+    $ftp_uname = variable_get('order_ftp_export_ftp_username');
+    $ftp_pass = variable_get('order_ftp_export_ftp_password');
+    $ftp_port = variable_get('order_ftp_export_ftp_port');
+    $ftp_directory = variable_get('order_ftp_export_ftp_directory');
+
+    //get the parts of the directory path (adding folders for year and month)
+    $ftp_directory_array = explode('/', $ftp_directory . "/" . date("Y/m"));
+
+    //connect to ftp server
+    if (!$fp = ftp_connect($ftp_server, $ftp_port, 30)) {
+      throw new Exception("error connectiong to FTP server");
+    }
+
+    try {
+      //login to ftp server
+      if (!ftp_login($fp, $ftp_uname, $ftp_pass)) {
+        throw new Exception("error authenticating to FTP server");
+      }
+      //change to passive mode
+      if (!ftp_pasv($fp, TRUE)) {
+        watchdog('commerce_ordr_ftp_export', 'Unable to set mode to passive', array(), WATCHDOG_NOTICE);
+      }
+      //navigate to (and/or create) destination directory
+      foreach ($ftp_directory_array as $fd) {
+        if (!empty($fd)) {
+          if (!@ftp_chdir($fp, $fd)) {
+            if (!@ftp_mkdir($fp, $fd)) {
+              throw new Exception("Unable to create direcotry (" . $fd . ")");
+            }
+            if (!@ftp_chdir($fp, $fd)) {
+              throw new Exception("Unable to change to direcotry (" . $fd . ")");
+            }
+          }
+        }
+      }
+
+      //upload file
+      if (ftp_put($fp, $order->order_id . ".xml", $orderfile, FTP_BINARY)) {
+        watchdog('commerce_ordr_ftp_export', 'Uploaded order xml (%orderid)', array('%orderid' => $order->order_id), WATCHDOG_NOTICE);
+      }
+      else {
+        throw new Exception("Unable to upload file (" . $orderfile . ")");
+      }
+
+      //update order status
+      commerce_order_status_update($order, 'processing', FALSE, TRUE, t('Order exported to FTP.'));
+
+    }
+    catch (Exception $e) {
+      watchdog('commerce_ordr_ftp_export', 'error uploading order xml (order id = %orderid). %error', array('%orderid' => $order->order_id, '%error' => $e->getMessage()), WATCHDOG_ERROR);
+    }
+    ftp_close($fp);
+  }
+  catch (Exception $e) {
+    watchdog('commerce_ordr_ftp_export', 'error uploading order xml (order id = %orderid). %error', array('%orderid' => $order->order_id, '%error' => $e->getMessage()), WATCHDOG_ERROR);
+  }
+
+  //delete tmp file
+  if (file_unmanaged_delete($orderfile)) {
+    watchdog('commerce_ordr_ftp_export', 'deleted temp order xml (%file)', array('%file' => $orderfile), WATCHDOG_DEBUG);
+  }
+  else {
+    watchdog('commerce_ordr_ftp_export', 'error deleting temp order xml (%file)', array('%file' => $orderfile), WATCHDOG_ERROR);
+  }
+}
+
+
+/**
+ * RE-ORDER Un-Changed Below
+ */
+/**
  * Implements hook_menu().
  */
 function commerce_order_ftp_export_menu() {
@@ -269,118 +408,6 @@ function commerce_order_ftp_export_commerce_order_update() {
 }
  */
 
-/**
- * Implements hook_rules_action_info().
- *
- * adds a rule action to export and upload an order and set status to 'processing'
- */
-function commerce_order_ftp_export_rules_action_info() {
-  $actions = array();
-
-  $actions['commerce_order_ftp_export_upload'] = array(
-    'label' => t('Export/Upload order'),
-    'parameter' => array(
-      'commerce_order' => array(
-        'type' => 'commerce_order',
-        'label' => t('Order to export/upload'),
-      ),
-    ),
-    'group' => t('Commerce Order FTP Export'),
-    'callbacks' => array(
-      'execute' => 'commerce_order_ftp_export_upload',
-    ),
-  );
-
-  return $actions;
-}
-
-/**
- * exports/uploads an order and updates status to Processing
- * Rules action
- */
-function commerce_order_ftp_export_upload($order) {
-  //export order to xml (string)
-  $orderxml = commerce_order_ftp_export_export_order($order);
-
-  //save xml to temporary file
-  $orderfile = file_unmanaged_save_data($orderxml, "temporary://order-" . $order->order_id . ".xml");;
-
-  //if the file saved correctly
-  if ($orderfile) {
-    watchdog('commerce_ordr_ftp_export', 'exported order xml (%savedfile)', array('%savedfile' => $orderfile), WATCHDOG_NOTICE);
-  }
-  else {
-    watchdog('commerce_ordr_ftp_export', 'error exporting order xml (order id = %orderid)', array('%orderid' => $order->order_id), WATCHDOG_ERROR);
-    return;
-  }
-  try {
-    //upload file to ftp
-    $ftp_server = variable_get('order_ftp_export_ftp_host');
-    $ftp_uname = variable_get('order_ftp_export_ftp_username');
-    $ftp_pass = variable_get('order_ftp_export_ftp_password');
-    $ftp_port = variable_get('order_ftp_export_ftp_port');
-    $ftp_directory = variable_get('order_ftp_export_ftp_directory');
-
-    //get the parts of the directory path (adding folders for year and month)
-    $ftp_directory_array = explode('/', $ftp_directory . "/" . date("Y/m"));
-
-    //connect to ftp server
-    if (!$fp = ftp_connect($ftp_server, $ftp_port, 30)) {
-      throw new Exception("error connectiong to FTP server");
-    }
-
-    try {
-      //login to ftp server
-      if (!ftp_login($fp, $ftp_uname, $ftp_pass)) {
-        throw new Exception("error authenticating to FTP server");
-      }
-      //change to passive mode
-      if (!ftp_pasv($fp, TRUE)) {
-        watchdog('commerce_ordr_ftp_export', 'Unable to set mode to passive', array(), WATCHDOG_NOTICE);
-      }
-      //navigate to (and/or create) destination directory
-      foreach ($ftp_directory_array as $fd) {
-        if (!empty($fd)) {
-          if (!@ftp_chdir($fp, $fd)) {
-            if (!@ftp_mkdir($fp, $fd)) {
-              throw new Exception("Unable to create direcotry (" . $fd . ")");
-            }
-            if (!@ftp_chdir($fp, $fd)) {
-              throw new Exception("Unable to change to direcotry (" . $fd . ")");
-            }
-          }
-        }
-      }
-
-      //upload file
-      if (ftp_put($fp, $order->order_id . ".xml", $orderfile, FTP_BINARY)) {
-        watchdog('commerce_ordr_ftp_export', 'Uploaded order xml (%orderid)', array('%orderid' => $order->order_id), WATCHDOG_NOTICE);
-      }
-      else {
-        throw new Exception("Unable to upload file (" . $orderfile . ")");
-      }
-
-      //update order status
-      commerce_order_status_update($order, 'processing', FALSE, TRUE, t('Order exported to FTP.'));
-
-    }
-    catch (Exception $e) {
-      watchdog('commerce_ordr_ftp_export', 'error uploading order xml (order id = %orderid). %error', array('%orderid' => $order->order_id, '%error' => $e->getMessage()), WATCHDOG_ERROR);
-    }
-    ftp_close($fp);
-  }
-  catch (Exception $e) {
-    watchdog('commerce_ordr_ftp_export', 'error uploading order xml (order id = %orderid). %error', array('%orderid' => $order->order_id, '%error' => $e->getMessage()), WATCHDOG_ERROR);
-  }
-
-  //delete tmp file
-  if (file_unmanaged_delete($orderfile)) {
-    watchdog('commerce_ordr_ftp_export', 'deleted temp order xml (%file)', array('%file' => $orderfile), WATCHDOG_DEBUG);
-  }
-  else {
-    watchdog('commerce_ordr_ftp_export', 'error deleting temp order xml (%file)', array('%file' => $orderfile), WATCHDOG_ERROR);
-  }
-}
 
 /**
  * exports an order xml
@@ -392,23 +419,6 @@ function commerce_order_ftp_export_export_order($order) {
 
   //render the xml
   return theme('commerce_order_ftp_export', $vars);
-}
-
-/**
- * Implements hook_theme().
- *
- * used for easily overriding the xml schema used to export orders
- */
-function commerce_order_ftp_export_theme($existing, $type, $theme, $path) {
-  if ($type == 'module') {
-    return array(
-      'commerce_order_ftp_export' => array(
-        'variables' => array('order' => NULL, 'line_items' => NULL, 'products' => NULL, 'profiles' => NULL, 'user' => NULL),
-          'template' => 'commerce-order-ftp-export'
-      )
-    );
-  }
-  return array();
 }
 
 
