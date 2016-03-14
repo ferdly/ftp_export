@@ -1,10 +1,31 @@
 <?php
 
+/**
+ * Will be Included
+ * * so below will check for pre-set params, else dev
+ * * values below should mirror Class: ftpx_config, Method: status_normalize(), Line: ~ 35
+ */
+$supported_status_array = array(
+    'DEV',
+    'DEVEL',
+    'DEVELOPMENT',
+    'STAGING',
+    'STAGE',
+    'TEST',
+    'TESTING',
+    'PROD',
+    'PRODUCTION',
+    'LIVE',
+);
+$server_status = in_array(@$server_status, $supported_status_array) ? $server_status : 'DEVELOPMENT';
+$content_status = in_array(@$content_status, $supported_status_array) ? $content_status : 'DEVEL';
+
+
 require_once 'ftp_export_object.php';
 
 $ftp_export_config_these = new ftpx_config();
-$server_status = 'DEVELOPMENT';
-$content_status = 'DEVEL';
+// $server_status = 'DEVELOPMENT';
+// $content_status = 'DEVEL';
 
 $ftp_export_config_these->server_status = $server_status;
 $ftp_export_config_these->content_status = $content_status;
