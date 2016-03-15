@@ -114,6 +114,9 @@ class ftpx_instance {
   var $ftp_directory;//aka path, maybe change later and if so do globally
   var $ftp_filename;
   var $ftp_fileextension;
+  var $save_filename;
+  var $save_fileextension;
+  var $save_file_object;
   var $file_generation_callback;
   var $time_start;
   var $stamp_start;
@@ -152,10 +155,18 @@ class ftpx_instance {
     $option_array = array();
     $option_array['STAMP'] = $this->stamp_start;
     $option_array['NOW'] = $this->time_start;
-    $content = 'DEV Content to FTP set on {DATE_TIME_FULL}';
-    $content = ftp_export_smarty_string($content, $option_array);
-    $this->ftp_filename = ftp_export_smarty_string($this->ftp_filename, $option_array);
-    $this->response = "Result of '" . __FUNCTION__ . "':" . $this->ftp_filename . '.' . $this->ftp_fileextension . ' TO: ' . $content;
+    $data = 'DEV Content to FTP set on {DATE_TIME_FULL}';
+    $option_array['NO_SPACE'] = 'UNDERSCORE';
+    $data = ftp_export_smarty_string($data, $option_array);
+    $this->save_filename = ftp_export_smarty_string($this->save_filename, $option_array);
+    $destination = $this->save_filename . '.' . $this->save_fileextension;
+    //file_save_data($data, $destination = NULL, $replace = FILE_EXISTS_RENAME{FILE_EXISTS_REPLACE|FILE_EXISTS_ERROR})
+    $replace = FILE_EXISTS_REPLACE;
+    $replace_string = $replace == 1 ? 'FILE_EXISTS_REPLACE'  : 'FILE_EXISTS_UNSUPPORTED';
+    $this->save_file_object = $data . '__' . $destination . '__' . $replace_string;
+    // $this->save_file_object = file_save_data($data, $destinatin, $replace);
+
+    $this->response = "Result of '" . __FUNCTION__ . "':" . $this->save_filename . '.' . $this->save_fileextension . ' TO: ' . $data;
     // $this->response = "Result of '" . __FUNCTION__ . "':" . $this->ftp_filename . '.';
     // $this->response = __FUNCTION__;
   }
@@ -171,9 +182,6 @@ class ftpx_instance {
 
 function ftp_export_smarty_string($string, $option_array = array()){
   $string_returned = $string;
-  $string_returned = $option_array['NO_TRIM'] === TRUE ? $string_returned : trim($string_returned);
-  $string_returned = $option_array['NO_SPACE'] == 'UNDERSCORE' ? str_replace(' ', '_', $string_returned) : $string_returned;
-  #\_ add camelCase, CamelCase, strtolower, strtoupper, ucwords as needed/desired
 
   $smarty_key = '{STAMP}';
   if (strpos($string, $smarty_key) !== FALSE) {
@@ -193,6 +201,10 @@ function ftp_export_smarty_string($string, $option_array = array()){
     $string_returned = str_replace($smarty_key, $smarty_value, $string_returned);
   }
   #\_ add blocks for {OTHER}s as needed/desired
+
+  $string_returned = $option_array['NO_TRIM'] === TRUE ? $string_returned : trim($string_returned);
+  $string_returned = $option_array['NO_SPACE'] == 'UNDERSCORE' ? str_replace(' ', '_', $string_returned) : $string_returned;
+  #\_ add camelCase, CamelCase, strtolower, strtoupper, ucwords as needed/desired
 
   return $string_returned;
 }

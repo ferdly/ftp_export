@@ -119,6 +119,9 @@ function _server_status_config(ftpx_instance $ftp_export_instance_this, $commonn
             $ftp_export_instance_this->ftp_password = "S0m3P@ssw0rd";
             $ftp_export_instance_this->ftp_port = 21;
             $ftp_export_instance_this->ftp_directory = "";
+            $ftp_export_instance_this->save_uri = "ftp_archive";
+            $ftp_export_instance_this->save_filename = "CS_HTMotors_{STAMP_DASH_T}";
+            $ftp_export_instance_this->save_fileextension = "txt";
             $ftp_export_instance_this->ftp_filename = "CS_HTMotors_{STAMP_DASH_T}";
             $ftp_export_instance_this->ftp_fileextension = "txt";
             $ftp_export_instance_this->file_generation_callback = "carsoup-export-csv";//path to Views Export
@@ -132,6 +135,9 @@ function _server_status_config(ftpx_instance $ftp_export_instance_this, $commonn
             $ftp_export_instance_this->ftp_password = "S0m3P@ssw0rd";
             $ftp_export_instance_this->ftp_port = 21;
             $ftp_export_instance_this->ftp_directory = "";
+            $ftp_export_instance_this->save_uri = "ftp_archive";
+            $ftp_export_instance_this->save_filename = "FC_HTMotors_{STAMP_DASH_T}";
+            $ftp_export_instance_this->save_fileextension = "txt";
             $ftp_export_instance_this->ftp_filename = "qiq_inventory";
             $ftp_export_instance_this->ftp_fileextension = "txt";
             $ftp_export_instance_this->file_generation_callback = "findcars-export-csv";//path to Views Export
