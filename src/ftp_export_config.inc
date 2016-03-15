@@ -23,8 +23,8 @@ $content_status = in_array(@$content_status, $supported_status_array) ? $content
 
 require_once 'ftp_export_object.php';
 
-// $time_now_or_other = time();
-$time_now_or_other = strtotime('+1 month');//For Testing
+$time_now_or_other = time();
+// $time_now_or_other = strtotime('+1 month');//For Testing
 $ftp_export_config_these = new ftpx_config($time_now_or_other);
 // $server_status = 'DEVELOPMENT';
 // $content_status = 'DEVEL';
@@ -37,6 +37,7 @@ $ftp_export_config_these->status_normalize();
 $ftp_export_instance_this =  new ftpx_instance($time_now_or_other);
 $commonname = "Carsoup";
 $ftp_export_instance_this->ftp_commonname = $commonname;
+$ftp_export_instance_this->save_archive_uri = $ftp_export_config_these->save_archive_uri;
 // $which_array = array('from', 'to');
 $which_array = array('SSKIP', 'to');
 // $status_array = $ftp_export_config->supported_status_array;
@@ -63,6 +64,7 @@ $time_now_or_other = strtotime('+2 minute',$time_now_or_other);
 $ftp_export_instance_this =  new ftpx_instance($time_now_or_other);
 $commonname = "FindCars";
 $ftp_export_instance_this->ftp_commonname = $commonname;
+$ftp_export_instance_this->save_archive_uri = $ftp_export_config_these->save_archive_uri;
 // $which_array = array('from', 'to');
 $which_array = array('SSKIP', 'to');
 // $status_array = $ftp_export_config->supported_status_array;

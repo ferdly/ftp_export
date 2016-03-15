@@ -11,7 +11,7 @@ class ftpx_config {
   var $stamp_start;
   var $stamp_end;
   var $response = 'RESPONSE PENDING';// for $watchdog will be 'SSUCCESS' or 'EERROR Count: X; Warning Count: Y;'
-  var $archive_uri;
+  var $save_archive_uri;
   var $prune_email_count;
   var $prune_email_array = array();
   var $prune_alert_email_count;
@@ -25,14 +25,14 @@ class ftpx_config {
 
     $client_contact = 'bradlowry+ftp_client@gmail.com';
     $developer_contact = 'brad@qiqgroup.com';
-    $archive_uri = 'ftp_exportovernight/';
+    $save_archive_uri = 'ftp_archive';
     $prune_count = 360;// 2 files a day for ~ 6 months
     $prune_alert_count = 720;// 2 files a day for ~ 12 months
     $prune_email_array[] = $client_contact;
     $prune_alert_email_array[] = $client_contact;
     $prune_alert_email_array[] = $developer_contact;
 
-    $this->archive_uri = $archive_uri;
+    $this->save_archive_uri = $save_archive_uri;
     $this->prune_email_count = $prune_count;
     $this->prune_alert_email_count = $prune_alert_count;
     $this->prune_email_array = $prune_email_array;
@@ -117,6 +117,7 @@ class ftpx_instance {
   var $save_filename;
   var $save_fileextension;
   var $save_file_object;
+  var $save_archive_uri;
   var $file_generation_callback;
   var $time_start;
   var $stamp_start;
@@ -159,7 +160,9 @@ class ftpx_instance {
     $option_array['NO_SPACE'] = 'UNDERSCORE';
     $data = ftp_export_smarty_string($data, $option_array);
     $this->save_filename = ftp_export_smarty_string($this->save_filename, $option_array);
-    $destination = $this->save_filename . '.' . $this->save_fileextension;
+    $destination = $this->save_archive_uri . '/' . $this->save_filename . '.' . $this->save_fileextension;
+    $destination = file_build_uri($destination);
+    $this->save_archive_uri = $destination;
     //file_save_data($data, $destination = NULL, $replace = FILE_EXISTS_RENAME{FILE_EXISTS_REPLACE|FILE_EXISTS_ERROR})
     $replace = FILE_EXISTS_REPLACE;
     $replace_string = $replace == 1 ? 'FILE_EXISTS_REPLACE'  : 'FILE_EXISTS_UNSUPPORTED';
