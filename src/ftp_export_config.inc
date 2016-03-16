@@ -60,7 +60,7 @@ if ($ftp_export_config_these->content_status !== $ftp_export_instance_this->cont
 $ftp_export_config_these->instance_array[] = $ftp_export_instance_this;
 unset($ftp_export_instance_this);
 
-$time_now_or_other = strtotime('+2 minute',$time_now_or_other);
+// $time_now_or_other = strtotime('+2 minute',$time_now_or_other);
 $ftp_export_instance_this =  new ftpx_instance($time_now_or_other);
 $commonname = "FindCars";
 $ftp_export_instance_this->ftp_commonname = $commonname;

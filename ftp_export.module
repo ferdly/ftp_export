@@ -26,11 +26,20 @@ function _drush_execute_ftpx($option_array = array()) {
     $steps['1.0']['SUBJECT'] = 'instantiate object';
     $steps['1.0']['PERCENT_COMPLETE'] = 90;
     //$this MEANS $ftp_export_instance
-    $steps['2.0']['SUBJECT'] = 'generate file(s) to transfer BY $this->file_generation_callback';
+    $steps['2.0']['SUBJECT'] = 'generate file(s) to transfer BY programatically, but not real data';
+    $steps['2.0']['BODY'] = 'Faux Content, but sufficient for testing the FTP part.';
     $steps['2.0']['PERCENT_COMPLETE'] = 80;
 
+    $steps['2.1']['SUBJECT'] = 'generate file(s) to transfer BY $this->file_generation_callback True Views Export';
+    $steps['2.1']['BODY'] = 'Big Hairy Task';
+    $steps['2.1']['PERCENT_COMPLETE'] = 10;
+
     $steps['3.0']['SUBJECT'] = 'FTP file(s) with WatchDog via $this->response';
+
     $steps['4.0']['SUBJECT'] = 'Archive Local Files';
+    $steps['4.0']['BODY'] = 'Implicit in Step 2, see Pruning step for managing volume of archive';
+    $steps['4.0']['PERCENT_COMPLETE'] = 100;
+
     $steps['5.0']['SUBJECT'] = 'Prune Email Local Files if COUNT > 180 days';//as part of config
     $steps['6.0']['SUBJECT'] = 'Prune Email DEV Local Files if COUNT > 360 days';//as part of config
     $steps['7.0']['SUBJECT'] = 'Email DEV on ANY EERROR determined by $this->response != SSUCCESS';

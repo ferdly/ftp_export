@@ -117,6 +117,7 @@ class ftpx_instance {
   var $save_filename;
   var $save_fileextension;
   var $save_file_object;
+  var $save_archive_url;
   var $save_archive_uri;
   var $file_generation_callback;
   var $time_start;
@@ -127,8 +128,8 @@ class ftpx_instance {
   public function __construct($time_now = 'NNULL') {
     $time_now = $time_now == 'NNULL' ? time() : $time_now;
     $this->time_start = $time_now;
-    $this->stamp_start = date('YmdGis', strtotime('+1 minute',$time_now));
-    $this->stamp_end = date('YmdGis', strtotime('+2 minute',$time_now));
+    $this->stamp_start = date('YmdGis', $time_now);
+    $this->stamp_end = date('YmdGis', strtotime('+1 minute',$time_now));
 
   }
 
@@ -157,17 +158,19 @@ class ftpx_instance {
     $option_array['STAMP'] = $this->stamp_start;
     $option_array['NOW'] = $this->time_start;
     $data = 'DEV Content to FTP set on {DATE_TIME_FULL}';
-    $option_array['NO_SPACE'] = 'UNDERSCORE';
     $data = ftp_export_smarty_string($data, $option_array);
+    $option_array['NO_SPACE'] = 'UNDERSCORE';
     $this->save_filename = ftp_export_smarty_string($this->save_filename, $option_array);
-    $destination = $this->save_archive_uri . '/' . $this->save_filename . '.' . $this->save_fileextension;
-    $destination = file_build_uri($destination);
+    $destination = 'public://' . $this->save_archive_uri . '/' . $this->save_filename . '.' . $this->save_fileextension;
     $this->save_archive_uri = $destination;
+    $this->save_archive_url = file_create_url($this->save_file_object->uri);
+
     //file_save_data($data, $destination = NULL, $replace = FILE_EXISTS_RENAME{FILE_EXISTS_REPLACE|FILE_EXISTS_ERROR})
     $replace = FILE_EXISTS_REPLACE;
     $replace_string = $replace == 1 ? 'FILE_EXISTS_REPLACE'  : 'FILE_EXISTS_UNSUPPORTED';
-    $this->save_file_object = $data . '__' . $destination . '__' . $replace_string;
-    // $this->save_file_object = file_save_data($data, $destinatin, $replace);
+    // $this->save_file_object = $data . '__' . $destination . '__' . $replace_string;
+    $this->save_file_object = file_save_data($data, $destination, $replace);
+    // $this->save_file_object = file_unmanaged_save_data($data, $destination, $replace);
 
     $this->response = "Result of '" . __FUNCTION__ . "':" . $this->save_filename . '.' . $this->save_fileextension . ' TO: ' . $data;
     // $this->response = "Result of '" . __FUNCTION__ . "':" . $this->ftp_filename . '.';
