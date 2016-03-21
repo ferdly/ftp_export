@@ -210,9 +210,10 @@ function ftp_export_rules_action_info() {
   $actions['ftp_export_upload'] = array(
     'label' => t('Export/Upload This'),
     // 'parameter' => array(
-    //   'commerce_order' => array(
-    //     'type' => 'commerce_order',
-    //     'label' => t('Order to export/upload'),
+    //   'hour_param' => array(
+    //     'type' => 'int',
+    //     'label' => t('Hour to execute export/upload'),
+    //     'default_value' => 777,
     //   ),
     // ),
     'group' => t('FTP Export This'),
@@ -228,7 +229,34 @@ function ftp_export_rules_action_info() {
  * exports/uploads an order and updates status to Processing
  * Rules action
  */
-function ftp_export_upload($order) {
+function ftp_export_upload() {
+  $hour_param = 23;
+  // $run_by_default = TRUE;//FALSE
+  $hour_this = date('G') + 0;
+  // $hour_param = $hour_this;
+  // $hour_param = @$hour_param + 0;
+  // $hour_param = $hour_param == 777  && $run_by_default !== TRUE? 0 : $hour_param + 0;
+  // $hour_param = $hour_param == 777 ? $hour_this : $hour_param;
+  // $hour_param = $hour_param > 24 ? 0 : $hour_param;
+  if ($hour_param == 0) {
+    #\_ too many wierd things happen at midnight, and indistinguishable from empty
+    return;
+  }elseif ($hour_param == 24) {
+    #\_ OVERLOAD if you really want to run at midnight!
+    $hour_param = 0;
+  }
+    $hour_param_string = print_r($hour_param, TRUE);
+  if ($hour_this == $hour_param) {
+    $mssg = 'it ran [' . $hour_param_string . ']';
+    drupal_set_message($mssg);
+    require_once 'src/ftp_export_config.inc';
+    $ftp_export_config_these->execute_ftp();
+  }else{
+    $mssg = 'it did not run [' . $hour_param_string . ']';
+    drupal_set_message($mssg);
+  }
+  return;
+
   //export order to xml (string)
   $orderxml = commerce_order_ftp_export_export_order($order);
 
