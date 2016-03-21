@@ -230,7 +230,7 @@ function ftp_export_rules_action_info() {
  * Rules action
  */
 function ftp_export_upload() {
-  $hour_param = 23;
+  $hour_param = 12;
   // $run_by_default = TRUE;//FALSE
   $hour_this = date('G') + 0;
   // $hour_param = $hour_this;

@@ -10,6 +10,7 @@ class ftpx_config {
   var $time_start;
   var $stamp_start;
   var $stamp_end;
+  var $log_filename_full;
   var $response = 'RESPONSE PENDING';// for $watchdog will be 'SSUCCESS' or 'EERROR Count: X; Warning Count: Y;'
   var $save_archive_uri;
   var $prune_email_count;
@@ -42,6 +43,7 @@ class ftpx_config {
     $this->time_start = $time_now;
     $this->stamp_start = date('YmdGis', $time_now);
     $this->stamp_end = date('YmdGis', strtotime('+5 minutes',$time_now));
+    $this->log_filename_full = 'ftp_log_file_' . substr($this->stamp_start, 0, 8) . '.txt';
     return;
   }
   public function status_normalize()
@@ -86,10 +88,37 @@ class ftpx_config {
     }
     $this->content_status = $status;
   }
+  public function log_file_exists()
+  {
+    $log_file_exists = TRUE;
+    $log_file_exists = FALSE;
+    /**
+     * mask = Daily
+     */
+
+    $evaluate_fileexists_with_php = $this->log_filename_full;
+
+    return $log_file_exists;
+  }
+
+  public function log_file_create()
+  {
+
+    $file_save_data_with_php = $this->log_filename_full;
+    $this->response .= $this->log_filename_full . ' Creation is PENDING|';
+
+  }
 
   public function execute_ftp()
   {
     $this->response = '';
+    $log_file_exists = $this->log_file_exists();
+    if ($log_file_exists) {
+      /**
+       * @todo Watchdog that it rand and aborted
+       */
+      return;
+    }
     foreach ($this->instance_array as $index => $ftpx_instance) {
       $ftpx_instance->generate_file_to_transfer();
       $this->response .= $ftpx_instance->response . '|';
