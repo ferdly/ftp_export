@@ -192,7 +192,8 @@ class ftpx_instance {
     $this->save_filename = ftp_export_smarty_string($this->save_filename, $option_array);
     $destination = 'public://' . $this->save_archive_uri . '/' . $this->save_filename . '.' . $this->save_fileextension;
     $this->save_archive_uri = $destination;
-    $this->save_archive_url = file_create_url($this->save_file_object->uri);
+    $this->save_archive_url = 'retun to this if necessary';
+    // $this->save_archive_url = file_create_url($this->save_file_object->uri);
 
     //file_save_data($data, $destination = NULL, $replace = FILE_EXISTS_RENAME{FILE_EXISTS_REPLACE|FILE_EXISTS_ERROR})
     $replace = FILE_EXISTS_REPLACE;
@@ -237,8 +238,8 @@ function ftp_export_smarty_string($string, $option_array = array()){
   }
   #\_ add blocks for {OTHER}s as needed/desired
 
-  $string_returned = $option_array['NO_TRIM'] === TRUE ? $string_returned : trim($string_returned);
-  $string_returned = $option_array['NO_SPACE'] == 'UNDERSCORE' ? str_replace(' ', '_', $string_returned) : $string_returned;
+  $string_returned = @$option_array['NO_TRIM'] === TRUE ? $string_returned : trim($string_returned);
+  $string_returned = @$option_array['NO_SPACE'] == 'UNDERSCORE' ? str_replace(' ', '_', $string_returned) : $string_returned;
   #\_ add camelCase, CamelCase, strtolower, strtoupper, ucwords as needed/desired
 
   return $string_returned;
