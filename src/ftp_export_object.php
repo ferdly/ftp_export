@@ -43,7 +43,7 @@ class ftpx_config {
     $this->time_start = $time_now;
     $this->stamp_start = date('YmdGis', $time_now);
     $this->stamp_end = date('YmdGis', strtotime('+5 minutes',$time_now));
-    $this->log_filename_full = 'ftp_log_file_' . substr($this->stamp_start, 0, 8) . '.txt';
+    $this->log_file_destination = 'public://' . $this->save_archive_uri . '/' . 'ftp_log_file_' . substr($this->stamp_start, 0, 8) . '.txt';
     return;
   }
   public function status_normalize()
@@ -90,13 +90,15 @@ class ftpx_config {
   }
   public function log_file_exists()
   {
-    $log_file_exists = TRUE;
-    $log_file_exists = FALSE;
-    /**
-     * mask = Daily
-     */
+    $log_file_exists = file_exists($this->log_file_destination);
+    if ($log_file_exists) {
+      $message = 'ftp will be skipped as log file was found (%destination)';
+    }else{
+      $message = 'ftp will continue as log file was not found (%destination)';
+    }
+    // watchdog($type, $message, $variables = array(), $severity = WATCHDOG_NOTICE, $link = NULL)
+    watchdog('ftp_export', $message, array('%destination' => $this->log_file_destination));
 
-    $evaluate_fileexists_with_php = $this->log_filename_full;
 
     return $log_file_exists;
   }
@@ -105,7 +107,15 @@ class ftpx_config {
   {
 
     $file_save_data_with_php = $this->log_filename_full;
-    $this->response .= $this->log_filename_full . ' Creation is PENDING|';
+    $option_array['STAMP'] = $this->stamp_start;
+    $option_array['NOW'] = $this->time_start;
+    $data = 'Log File to test FTP set on {DATE_TIME_FULL}';
+    $data = ftp_export_smarty_string($data, $option_array);
+    // $this->response .= $this->log_filename_full . ' Creation is PENDING|';
+    $replace = FILE_EXISTS_REPLACE;
+    $this->log_file_object = file_save_data($data, $this->log_file_destination, $replace);
+    $message = 'ftp complete and log file created (%destination)';
+    watchdog('ftp_export', $message, array('%destination' => $this->log_file_destination));
 
   }
 
@@ -123,6 +133,7 @@ class ftpx_config {
       $ftpx_instance->generate_file_to_transfer();
       $this->response .= $ftpx_instance->response . '|';
     }
+    $this->log_file_create();
     $this->response = str_replace('|', '; ', $this->response);
     $this->response = empty($this->response) ? 'RESPONSE ERROR: ' . __FUNCTION__ : $this->response;
   }
