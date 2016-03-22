@@ -116,11 +116,11 @@ function _server_status_config(ftpx_instance $ftp_export_instance_this, $commonn
         case 'carsoup_to_dev':
             $ftp_export_instance_this->ftp_to_from = $which;
             $ftp_export_instance_this->ftp_combo_key_array[] = $combo_key;
-            $ftp_export_instance_this->ftp_host = "dev_upload.carsoup.com";
-            $ftp_export_instance_this->ftp_username = "QIQgroup";
-            $ftp_export_instance_this->ftp_password = "S0m3P@ssw0rd";
+            $ftp_export_instance_this->ftp_host = "skerbitz.org";
+            $ftp_export_instance_this->ftp_username = "brad";
+            $ftp_export_instance_this->ftp_password = "netGhaj8";
             $ftp_export_instance_this->ftp_port = 21;
-            $ftp_export_instance_this->ftp_directory = "";
+            $ftp_export_instance_this->ftp_directory = "files";
             $ftp_export_instance_this->save_uri = "ftp_archive";
             $ftp_export_instance_this->save_filename = "CS_HTMotors_{STAMP_DASH_T}";
             $ftp_export_instance_this->save_fileextension = "txt";
@@ -132,11 +132,11 @@ function _server_status_config(ftpx_instance $ftp_export_instance_this, $commonn
         case 'findcars_to_dev':
             $ftp_export_instance_this->ftp_to_from = $which;
             $ftp_export_instance_this->ftp_combo_key_array[] = $combo_key;
-            $ftp_export_instance_this->ftp_host = "car"; //
-            $ftp_export_instance_this->ftp_username = "QIQgroup";
-            $ftp_export_instance_this->ftp_password = "S0m3P@ssw0rd";
+            $ftp_export_instance_this->ftp_host = "skerbitz.org"; //
+            $ftp_export_instance_this->ftp_username = "brad";
+            $ftp_export_instance_this->ftp_password = "netGhaj8";
             $ftp_export_instance_this->ftp_port = 21;
-            $ftp_export_instance_this->ftp_directory = "";
+            $ftp_export_instance_this->ftp_directory = "files";
             $ftp_export_instance_this->save_uri = "ftp_archive";
             $ftp_export_instance_this->save_filename = "FC_HTMotors_{STAMP_DASH_T}";
             $ftp_export_instance_this->save_fileextension = "txt";

@@ -230,7 +230,19 @@ function ftp_export_rules_action_info() {
  * Rules action
  */
 function ftp_export_upload() {
-  $hour_param = 18;
+  $message = 'BEGIN: ftp_export_upload()';
+  watchdog('ftp_export', $message);
+  drupal_set_message($message);
+
+  require_once 'src/ftp_export_config.inc';
+  // $ftp_export_config_these->execute_ftp($ftp_execution_key_override);
+  //#\_PENDING $ftp_execution_key_override
+  $ftp_export_config_these->execute_ftp();
+
+  $message = 'END: ftp_export_upload()';
+  watchdog('ftp_export', $message);
+  return;
+  $hour_param = 5;
   $hour_this = date('G') + 0;
   if ($hour_param == 0) {
     #\_ too many wierd things happen at midnight, and indistinguishable from empty
