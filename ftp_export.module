@@ -209,13 +209,6 @@ function ftp_export_rules_action_info() {
 
   $actions['ftp_export_upload'] = array(
     'label' => t('Export/Upload This'),
-    // 'parameter' => array(
-    //   'hour_param' => array(
-    //     'type' => 'int',
-    //     'label' => t('Hour to execute export/upload'),
-    //     'default_value' => 777,
-    //   ),
-    // ),
     'group' => t('FTP Export This'),
     'callbacks' => array(
       'execute' => 'ftp_export_upload',
@@ -236,7 +229,11 @@ function ftp_export_upload() {
 
   require_once 'src/ftp_export_config.inc';
   // $ftp_export_config_these->execute_ftp($ftp_execution_key_override);
-  //#\_PENDING $ftp_execution_key_override
+
+  /**
+   * @todo figure out how to pass $ftp_execution_key_override
+   */
+
   $ftp_export_config_these->execute_ftp();
 
   $message = 'END: ftp_export_upload()';
