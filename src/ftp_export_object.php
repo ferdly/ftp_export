@@ -26,7 +26,7 @@ class ftpx_config {
      */
 
     // $ftp_execute_key = 'YYYYMMDD180000';
-    $ftp_execute_key = 'YYYYMMDD074800';
+    $ftp_execute_key = 'YYYYMMDD100000';
     $client_contact = 'bradlowry+ftp_client@gmail.com';
     $developer_contact = 'brad@qiqgroup.com';
     $save_archive_uri = 'ftp_archive';
@@ -102,6 +102,7 @@ class ftpx_config {
     }
     // watchdog($type, $message, $variables = array(), $severity = WATCHDOG_NOTICE, $link = NULL)
     watchdog('ftp_export', $message, array('%destination' => $this->log_file_destination));
+    $this->response .= $message . '|';
 
 
     return $log_file_exists;
@@ -117,6 +118,7 @@ class ftpx_config {
     $this->log_file_object = file_save_data($data, $this->log_file_destination, $replace);
     $message = 'ftp log file created (%destination)';
     watchdog('ftp_export', $message, array('%destination' => $this->log_file_destination));
+    $this->response .= $message . '|';
 
   }
 
@@ -126,13 +128,14 @@ class ftpx_config {
       $this->ftp_execute_key = $ftp_execute_key_override;
     }
     $do_execute_full = ftp_export_key_evaluate_execution($this->stamp_start, $this->ftp_execute_key);
-    $this->response = $do_execute_full;
+    $this->response = $message;
     $do_execute = substr($do_execute_full, -5);
     if ($do_execute != 'TTRUE') {
       $message = 'SKIPPED: ftp_export_upload()';
       $message .= ' [' . $do_execute_full . ' != ' . 'TTRUE' . ']';
       watchdog('ftp_export', $message);
       drupal_set_message($message);
+      $this->response = $message;
       return;
     }
     $message = 'CONTINUE: ftp_export_upload()';
@@ -141,12 +144,13 @@ class ftpx_config {
     drupal_set_message($message);
 
     $this->response = '';
+    $this->response .= $message . '|';
     $log_file_exists = $this->log_file_exists();
     if ($log_file_exists) {
       return;
     }
     foreach ($this->instance_array as $index => $ftpx_instance) {
-      $ftpx_instance->generate_file_to_transfer();
+      $ftpx_instance->execute_ftp_instance();
       $this->response .= $ftpx_instance->response . '|';
     }
     $this->log_file_create();
@@ -191,6 +195,12 @@ class ftpx_instance {
 
   }
 
+  public function execute_ftp_instance()
+  {
+    $this->generate_file_to_transfer();
+    $this->ftp_put_instance();
+  }
+
   public function generate_file_to_transfer()
   {
     switch ($this->content_status) {
@@ -219,6 +229,7 @@ class ftpx_instance {
     $data = ftp_export_smarty_string($data, $option_array);
     $option_array['NO_SPACE'] = 'UNDERSCORE';
     $this->save_filename = ftp_export_smarty_string($this->save_filename, $option_array);
+    $this->ftp_filename = ftp_export_smarty_string($this->ftp_filename, $option_array);
     $destination = 'public://' . $this->save_archive_uri . '/' . $this->save_filename . '.' . $this->save_fileextension;
     $this->save_archive_uri = $destination;
 
@@ -237,13 +248,105 @@ class ftpx_instance {
     // $this->response = __FUNCTION__;
   }
 
-  public function ftp_watchdog()
+  public function ftp_put_instance()
   {
-   // $stamp = date('YmdGis');
-   // watchdog('commerce_ordr_ftp_export', 'Uploaded order xml (%orderid)', array('%orderid' => $order->order_id), WATCHDOG_NOTICE);
-   $this->response = 'Test of WatchDog for ' . $this->ftp_commonname;
+    switch ($this->content_status) {
+      case 'PROD':
+        $this->ftp_put_instance_dev();
+        break;
+      case 'STAGING':
+        $this->ftp_put_instance_dev();
+        break;
+      case 'DEV':
+        $this->ftp_put_instance_dev();
+        break;
+
+      default:
+        $this->response = "DDEFAULT of SWITCH on Line " . __LINE__ . "of Function: '" . __FUNCTION__ . "'";
+        break;
+    }
   }
 
+  public function ftp_put_instance_dev()
+  {
+  // $destination_file = 'DestFileThis' . '.' . 'txt';
+  $destination_file = $this->ftp_filename . '.' . $this->ftp_fileextension;
+  $source_file = $this->save_archive_uri;
+  // $source_file = $this->save_file_object->uri;
+  $message = "Holder For! FTP upload %source_file to %ftp_host as %destination_file";
+  watchdog('ftp_export', $message, array(
+    '%ftp_host' => $this->ftp_host,
+    '%source_file' => $source_file,
+    '%destination_file' => $destination_file)
+  );
+  return;
+
+  $error_message = '';
+  $connection_handle = ftp_connect($this->ftp_host);
+  // check connection
+  if (!$connection_handle) {
+      $error_message = "FTP connection failed to connect to $this->ftp_host";
+      watchdog('ftp_export', $error_message, array('%ftp_host' => $this->ftp_host), WATCHDOG_ERROR);
+      return;
+  }
+  // login with username and password
+  $login_result = ftp_login($connection_handle, $this->ftp_username, $this->ftp_password);
+
+  // check connection
+  if (!$login_result) {
+      $error_message = "FTP connection to %ftp_host could not resolve credentials for %ftp_username";
+      // watchdog($type, $message, $variables = array(), $severity = WATCHDOG_NOTICE{WATCHDOG_ERROR}, $link = NULL)
+    watchdog('ftp_export', $error_message, array(
+      '%ftp_host' => $this->ftp_host,
+      '%ftp_username' => $this->ftp_username), WATCHDOG_ERROR);
+
+      return;
+  } else {
+      $message = "Connected to %ftp_host for user %ftp_username";
+      watchdog('ftp_export', $message, array('%ftp_host' => $this->ftp_host, '%ftp_username' => $this->ftp_username));
+  }
+
+  if (!empty($this->ftp_directory)) {
+    $chdir_result = ftp_chdir ( $connection_handle , $this->ftp_directory );
+    // check chdir
+    if (!$chdir_result) {
+        $error_message = "FTP connection  $this->ftp_host could not chdir to $this->ftp_directory";
+        ftp_close($connection_handle);
+        return;
+    }else {
+      $message = "FTP connection  %ftp_host chdir to %ftp_directory";
+      watchdog('ftp_export', $message, array('%ftp_host' => $this->ftp_host, '%ftp_directory' => $this->ftp_directory));
+    }
+  }
+
+  if (empty($error_message)) {
+    // upload the file
+    $destination_file = $this->ftp_filename . '.' . $this->ftp_fileextension;
+    $source_file = $this->save_file_object->uri;
+    $upload = ftp_put($connection_handle, $destination_file, $source_file, FTP_BINARY);
+
+    // check upload status
+    if (!$upload) {
+        $error_message = "Failed! FTP upload %source_file to %ftp_host as %destination_file";
+        watchdog('ftp_export', $error_message, array(
+          '%ftp_host' => $this->ftp_host,
+          '%source_file' => $source_file,
+          '%destination_file' => $destination_file),
+        WATCHDOG_ERROR);
+    } else {
+        $message = "Succeeded! FTP upload %source_file to %ftp_host as %destination_file";
+        watchdog('ftp_export', $message, array(
+          '%ftp_host' => $this->ftp_host,
+          '%source_file' => $source_file,
+          '%destination_file' => $destination_file)
+        );
+    }
+  }
+
+  // close the FTP stream
+  ftp_close($connection_handle);
+  return;
+  }
 } //END class ftpx_instance
 
 function ftp_export_smarty_string($string, $option_array = array()){
