@@ -230,7 +230,7 @@ function ftp_export_rules_action_info() {
  * Rules action
  */
 function ftp_export_upload() {
-  $hour_param = 12;
+  $hour_param = 18;
   // $run_by_default = TRUE;//FALSE
   $hour_this = date('G') + 0;
   // $hour_param = $hour_this;
@@ -246,7 +246,7 @@ function ftp_export_upload() {
     $hour_param = 0;
   }
     $hour_param_string = print_r($hour_param, TRUE);
-  if ($hour_this == $hour_param) {
+  if ($hour_this >= $hour_param) {
     $mssg = 'it ran [' . $hour_param_string . ']';
     drupal_set_message($mssg);
     require_once 'src/ftp_export_config.inc';
