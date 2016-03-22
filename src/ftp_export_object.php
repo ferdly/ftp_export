@@ -105,16 +105,13 @@ class ftpx_config {
 
   public function log_file_create()
   {
-
-    $file_save_data_with_php = $this->log_filename_full;
     $option_array['STAMP'] = $this->stamp_start;
     $option_array['NOW'] = $this->time_start;
     $data = 'Log File to test FTP set on {DATE_TIME_FULL}';
     $data = ftp_export_smarty_string($data, $option_array);
-    // $this->response .= $this->log_filename_full . ' Creation is PENDING|';
     $replace = FILE_EXISTS_REPLACE;
     $this->log_file_object = file_save_data($data, $this->log_file_destination, $replace);
-    $message = 'ftp complete and log file created (%destination)';
+    $message = 'ftp log file created (%destination)';
     watchdog('ftp_export', $message, array('%destination' => $this->log_file_destination));
 
   }
@@ -124,9 +121,6 @@ class ftpx_config {
     $this->response = '';
     $log_file_exists = $this->log_file_exists();
     if ($log_file_exists) {
-      /**
-       * @todo Watchdog that it rand and aborted
-       */
       return;
     }
     foreach ($this->instance_array as $index => $ftpx_instance) {
@@ -136,6 +130,8 @@ class ftpx_config {
     $this->log_file_create();
     $this->response = str_replace('|', '; ', $this->response);
     $this->response = empty($this->response) ? 'RESPONSE ERROR: ' . __FUNCTION__ : $this->response;
+    $message = 'execute_ftp() complete';
+    watchdog('ftp_export', $message);
   }
 
 } //END class MD5_ of ftp_export_config in lieu of Name Spacing
@@ -203,17 +199,18 @@ class ftpx_instance {
     $this->save_filename = ftp_export_smarty_string($this->save_filename, $option_array);
     $destination = 'public://' . $this->save_archive_uri . '/' . $this->save_filename . '.' . $this->save_fileextension;
     $this->save_archive_uri = $destination;
-    $this->save_archive_url = 'retun to this if necessary';
-    // $this->save_archive_url = file_create_url($this->save_file_object->uri);
 
     //file_save_data($data, $destination = NULL, $replace = FILE_EXISTS_RENAME{FILE_EXISTS_REPLACE|FILE_EXISTS_ERROR})
     $replace = FILE_EXISTS_REPLACE;
     $replace_string = $replace == 1 ? 'FILE_EXISTS_REPLACE'  : 'FILE_EXISTS_UNSUPPORTED';
     // $this->save_file_object = $data . '__' . $destination . '__' . $replace_string;
     $this->save_file_object = file_save_data($data, $destination, $replace);
-    // $this->save_file_object = file_unmanaged_save_data($data, $destination, $replace);
+    $this->save_archive_url = 'retun to this if necessary';
+    // $this->save_archive_url = file_create_url($this->save_file_object->uri);
+    $message = 'ftp instance save file created (%destination)';
+    watchdog('ftp_export', $message, array('%destination' => $destination));
 
-    $this->response = "Result of '" . __FUNCTION__ . "':" . $this->save_filename . '.' . $this->save_fileextension . ' TO: ' . $data;
+    // $this->response = "Result of '" . __FUNCTION__ . "':" . $this->save_filename . '.' . $this->save_fileextension . ' TO: ' . $data;
     // $this->response = "Result of '" . __FUNCTION__ . "':" . $this->ftp_filename . '.';
     // $this->response = __FUNCTION__;
   }
