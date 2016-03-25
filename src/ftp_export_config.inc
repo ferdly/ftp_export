@@ -126,7 +126,8 @@ function _server_status_config(ftpx_instance $ftp_export_instance_this, $commonn
             $ftp_export_instance_this->save_fileextension = "txt";
             $ftp_export_instance_this->ftp_filename = "CS_HTMotors_{STAMP_DASH_T}";
             $ftp_export_instance_this->ftp_fileextension = "txt";
-            $ftp_export_instance_this->file_generation_callback = "carsoup-export-csv";//path to Views Export
+            $ftp_export_instance_this->save_callback_view_name = 'ttc_first';
+            $ftp_export_instance_this->save_callback_view_display_id = 'views_data_export_1';
             break;
 
         case 'findcars_to_dev':
@@ -142,7 +143,8 @@ function _server_status_config(ftpx_instance $ftp_export_instance_this, $commonn
             $ftp_export_instance_this->save_fileextension = "txt";
             $ftp_export_instance_this->ftp_filename = "qiq_inventory";
             $ftp_export_instance_this->ftp_fileextension = "txt";
-            $ftp_export_instance_this->file_generation_callback = "findcars-export-csv";//path to Views Export
+            $ftp_export_instance_this->save_callback_view_name = 'ttc_second';
+            $ftp_export_instance_this->save_callback_view_display_id = 'views_data_export_1';
             break;
 
         default:

@@ -128,7 +128,6 @@ class ftpx_config {
       $this->ftp_execute_key = $ftp_execute_key_override;
     }
     $do_execute_full = ftp_export_key_evaluate_execution($this->stamp_start, $this->ftp_execute_key);
-    $this->response = $message;
     $do_execute = substr($do_execute_full, -5);
     if ($do_execute != 'TTRUE') {
       $message = 'SKIPPED: ftp_export_upload()';
@@ -181,7 +180,8 @@ class ftpx_instance {
   var $save_file_object;
   var $save_archive_url;
   var $save_archive_uri;
-  var $file_generation_callback;
+  var $save_callback_view_name;
+  var $save_callback_view_display_id;
   var $time_start;
   var $stamp_start;
   var $stamp_end;
@@ -224,9 +224,10 @@ class ftpx_instance {
   {
     $option_array = array();
     $option_array['STAMP'] = $this->stamp_start;
-    $option_array['NOW'] = $this->time_start;
-    $data = 'DEV Content to FTP set on {DATE_TIME_FULL}';
-    $data = ftp_export_smarty_string($data, $option_array);
+    // $option_array['NOW'] = $this->time_start;
+    // $data = 'DEV Content to FTP set on {DATE_TIME_FULL}';
+    // $data = ftp_export_smarty_string($data, $option_array);
+    $data = $this->gather_data_to_ftp();
     $option_array['NO_SPACE'] = 'UNDERSCORE';
     $this->save_filename = ftp_export_smarty_string($this->save_filename, $option_array);
     $this->ftp_filename = ftp_export_smarty_string($this->ftp_filename, $option_array);
@@ -246,6 +247,22 @@ class ftpx_instance {
     // $this->response = "Result of '" . __FUNCTION__ . "':" . $this->save_filename . '.' . $this->save_fileextension . ' TO: ' . $data;
     // $this->response = "Result of '" . __FUNCTION__ . "':" . $this->ftp_filename . '.';
     // $this->response = __FUNCTION__;
+  }
+
+  public function gather_data_to_ftp()
+  {
+    $view_name = $this->save_callback_view_name;
+    $view_display_id = $this->save_callback_view_display_id;
+
+    $data = views_embed_view($view_name, $view_display_id);
+    if (empty($data)) {
+      $option_array = array();
+      $option_array['STAMP'] = $this->stamp_start;
+      $option_array['NOW'] = $this->time_start;
+      $data = "views_embed_view('ttc_first', 'views_data_export_1') FAILED! Content set within method '" . __FUNCTION__ . "'to FTP set on {DATE_TIME_FULL}";
+      $data = ftp_export_smarty_string($data, $option_array);
+    }
+    return $data;
   }
 
   public function ftp_put_instance()
@@ -273,13 +290,13 @@ class ftpx_instance {
   $destination_file = $this->ftp_filename . '.' . $this->ftp_fileextension;
   $source_file = $this->save_archive_uri;
   // $source_file = $this->save_file_object->uri;
-  $message = "Holder For! FTP upload %source_file to %ftp_host as %destination_file";
-  watchdog('ftp_export', $message, array(
-    '%ftp_host' => $this->ftp_host,
-    '%source_file' => $source_file,
-    '%destination_file' => $destination_file)
-  );
-  return;
+  // $message = "Holder For! FTP upload %source_file to %ftp_host as %destination_file";
+  // watchdog('ftp_export', $message, array(
+  //   '%ftp_host' => $this->ftp_host,
+  //   '%source_file' => $source_file,
+  //   '%destination_file' => $destination_file)
+  // );
+  // return;
 
   $error_message = '';
   $connection_handle = ftp_connect($this->ftp_host);
@@ -323,6 +340,7 @@ class ftpx_instance {
     // upload the file
     $destination_file = $this->ftp_filename . '.' . $this->ftp_fileextension;
     $source_file = $this->save_file_object->uri;
+    ftp_pasv($connection_handle, true);
     $upload = ftp_put($connection_handle, $destination_file, $source_file, FTP_BINARY);
 
     // check upload status
@@ -359,7 +377,7 @@ function ftp_export_smarty_string($string, $option_array = array()){
   }
   $smarty_key = '{STAMP_DASH_T}';
   if (strpos($string, $smarty_key) !== FALSE) {
-    $now = $option_array['NOW'] + 0 > 0 ? $option_array['NOW'] + 0 : strtotime('now');
+    $now = @$option_array['NOW'] + 0 > 0 ? $option_array['NOW'] + 0 : strtotime('now');
     $smarty_value = date('Y-m-d\TG-i-s', $now);
     $string_returned = str_replace($smarty_key, $smarty_value, $string_returned);
   }
