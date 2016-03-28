@@ -225,7 +225,6 @@ function ftp_export_rules_action_info() {
 function ftp_export_upload() {
   $message = 'BEGIN: ftp_export_upload()';
   watchdog('ftp_export', $message);
-  drupal_set_message($message);
 
   require_once 'src/ftp_export_config.inc';
   // $ftp_export_config_these->execute_ftp($ftp_execution_key_override);

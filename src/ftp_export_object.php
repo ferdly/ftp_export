@@ -26,8 +26,8 @@ class ftpx_config {
      * PREFS
      */
 
-    // $ftp_execute_key = 'YYYYMMDD180000';
-    $ftp_execute_key = 'YYYYMMDD120000';
+    $ftp_execute_key = 'YYYYMMDD180000';
+    // $ftp_execute_key = 'YYYYMMDD120000';
     $client_contact = 'bradlowry+ftp_client@gmail.com';
     $developer_contact = 'brad@qiqgroup.com';
     $save_archive_uri = 'ftp_archive';
@@ -98,14 +98,6 @@ class ftpx_config {
   public function log_file_exists()
   {
     $log_file_exists = file_exists($this->log_file_destination);
-    // if ($log_file_exists) {
-    //   $message = 'ftp will be skipped as log file was found (%destination)';
-    // }else{
-    //   $message = 'ftp will continue as log file was not found (%destination)';
-    // }
-    // watchdog($type, $message, $variables = array(), $severity = WATCHDOG_NOTICE, $link = NULL)
-    // watchdog('ftp_export', $message, array('%destination' => $this->log_file_destination));
-    // $this->response .= $message . '|';
     $variables = array('%destination' => $this->log_file_destination);
     load_watchdog(__FUNCTION__, $log_file_exists, $variables);
 
@@ -120,12 +112,9 @@ class ftpx_config {
     $data = ftp_export_smarty_string($data, $option_array);
     $replace = FILE_EXISTS_REPLACE;
     $this->log_file_object = file_save_data($data, $this->log_file_destination, $replace);
-    // $message = 'ftp log file created (%destination)';
-    // watchdog('ftp_export', $message, array('%destination' => $this->log_file_destination));
     $status = $this->log_file_object === FALSE ? 'NEGATIVE' : 'AFFIRMATIVE';
     $variables  = array('%destination' => $this->log_file_destination);
     load_watchdog(__FUNCTION__, $status, $variables);
-    // $this->response .= $message . '|';
 
   }
 
@@ -135,22 +124,22 @@ class ftpx_config {
       $this->ftp_execute_key = $ftp_execute_key_override;
     }
     $do_execute_full = ftp_export_key_evaluate_execution($this->stamp_start, $this->ftp_execute_key);
+    if ($this->ftp_execute_key != 'YYYYMMDD180000') {
+      $message = '$this->ftp_execute_key != \'YYYYMMDD180000\'';
+      drupal_set_message($message);
+    }
     $do_execute = substr($do_execute_full, -5);
     $do_execute_affirmative = $do_execute != 'TTRUE' ? 'NEGATIVE' : 'AFFIRMATIVE';
     $do_excute_array = array('status' => $do_execute_affirmative, 'flag' => 'BEGUN');
     if ($do_execute != 'TTRUE') {
       $message = 'SKIPPED: ftp_export_upload()';
       $message .= ' [' . $do_execute_full . ' != ' . 'TTRUE' . ']';
-      // watchdog('ftp_export', $message);
       load_watchdog(__FUNCTION__, $do_excute_array);
-      drupal_set_message($message);
       $this->response = $message;
       return;
     }
     $message = 'CONTINUE: ftp_export_upload()';
     $message .= ' [' . $do_execute_full . ' == ' . 'TTRUE' . ']';
-    // watchdog('ftp_export', $message);
-    drupal_set_message($message);
     load_watchdog(__FUNCTION__, $do_excute_array);
     $this->response = '';
     $this->response .= $message . '|';
@@ -168,7 +157,6 @@ class ftpx_config {
     $this->response = str_replace('|', '; ', $this->response);
     $this->response = empty($this->response) ? 'RESPONSE ERROR: ' . __FUNCTION__ : $this->response;
     $message = 'execute_ftp() complete';
-    // watchdog('ftp_export', $message);
     $do_excute_array['flag'] = 'COMPLETED';
     load_watchdog(__FUNCTION__, $do_excute_array);
 
@@ -219,24 +207,6 @@ class ftpx_instance {
     $this->ftp_put_instance();
   }
 
-  public function generate_file_to_transfer_xxx()
-  {
-    switch ($this->content_status) {
-      case 'PROD':
-        $this->generate_file_to_transfer_dev();
-        break;
-      case 'STAGING':
-        $this->generate_file_to_transfer_dev();
-        break;
-      case 'DEV':
-        $this->generate_file_to_transfer_dev();
-        break;
-
-      default:
-        $this->response = "DDEFAULT of SWITCH on Line " . __LINE__ . "of Function: '" . __FUNCTION__ . "'";
-        break;
-    }
-  }
 
   public function generate_file_to_transfer()
   {
@@ -249,22 +219,15 @@ class ftpx_instance {
     $destination = 'public://' . $this->save_archive_uri . '/' . $this->save_filename . '.' . $this->save_fileextension;
     $this->save_archive_uri = $destination;
 
-    //file_save_data($data, $destination = NULL, $replace = FILE_EXISTS_RENAME{FILE_EXISTS_REPLACE|FILE_EXISTS_ERROR})
     $replace = FILE_EXISTS_REPLACE;
-    $replace_string = $replace == 1 ? 'FILE_EXISTS_REPLACE'  : 'FILE_EXISTS_UNSUPPORTED';
-    // $this->save_file_object = $data . '__' . $destination . '__' . $replace_string;
     $this->save_file_object = file_save_data($data, $destination, $replace);
     $status = $this->save_file_object === FALSE ? 'NEGATIVE' : 'AFFIRMATIVE';
     $this->save_archive_url = 'retun to this if necessary';
     // $this->save_archive_url = file_create_url($this->save_file_object->uri);
     $message = 'ftp instance save file created (%destination)';
-    // watchdog('ftp_export', $message, array('%destination' => $destination));
     $variables = array('%destination' => $destination);
     load_watchdog(__FUNCTION__, $status, $variables);
 
-    // $this->response = "Result of '" . __FUNCTION__ . "':" . $this->save_filename . '.' . $this->save_fileextension . ' TO: ' . $data;
-    // $this->response = "Result of '" . __FUNCTION__ . "':" . $this->ftp_filename . '.';
-    // $this->response = __FUNCTION__;
   }
 
   public function gather_data_to_ftp()
@@ -287,31 +250,13 @@ class ftpx_instance {
     return $data;
   }
 
-  public function ftp_put_instance_xxx()
-  {
-    switch ($this->content_status) {
-      case 'PROD':
-        $this->ftp_put_instance_dev();
-        break;
-      case 'STAGING':
-        $this->ftp_put_instance_dev();
-        break;
-      case 'DEV':
-        $this->ftp_put_instance_dev();
-        break;
-
-      default:
-        $this->response = "DDEFAULT of SWITCH on Line " . __LINE__ . "of Function: '" . __FUNCTION__ . "'";
-        break;
-    }
-  }
-
   public function ftp_put_instance()
   {
   $destination_file = $this->ftp_filename . '.' . $this->ftp_fileextension;
   $source_file = $this->save_archive_uri;
 
   $error_message = '';
+  #\_ only needs to be Non-Empty below, but vestigial full error message left in place
   $connection_handle = ftp_connect($this->ftp_host);
 
   // check connection
@@ -319,7 +264,6 @@ class ftpx_instance {
       $status_array = array('status' => 'NEGATIVE', 'flag' => 'CONN');
       $error_message = "FTP connection failed to connect to $this->ftp_host";
       $status_array['ftp_data'] = "Host: %ftp_host";
-      // watchdog('ftp_export', $error_message, array('%ftp_host' => $this->ftp_host), WATCHDOG_ERROR);
       $variables = array('%ftp_host' => $this->ftp_host);
       load_watchdog(__FUNCTION__, $status_array, $variables);
       return;
@@ -332,21 +276,14 @@ class ftpx_instance {
       $status_array = array('status' => 'NEGATIVE', 'flag' => 'LOGIN');
       $error_message = "FTP connection to %ftp_host could not resolve credentials for %ftp_username";
       $status_array['ftp_data'] = "Host: %ftp_host; User: %ftp_username;";
-      // watchdog($type, $message, $variables = array(), $severity = WATCHDOG_NOTICE{WATCHDOG_ERROR}, $link = NULL)
-    // watchdog('ftp_export', $error_message, array(
-    //   '%ftp_host' => $this->ftp_host,
-    //   '%ftp_username' => $this->ftp_username), WATCHDOG_ERROR);
       $variables =  array(
         '%ftp_host' => $this->ftp_host,
         '%ftp_username' => $this->ftp_username);
       load_watchdog(__FUNCTION__, $status_array, $variables);
-
       return;
   } else {
       $status_array = array('status' => 'AFFIRMATIVE', 'flag' => 'LOGIN');
-      // $message = "Connected to %ftp_host for user %ftp_username";
       $status_array['ftp_data'] = "Host: %ftp_host; User: %ftp_username;";
-            // watchdog('ftp_export', $message, array('%ftp_host' => $this->ftp_host, '%ftp_username' => $this->ftp_username));
       $variables =  array(
         '%ftp_host' => $this->ftp_host,
         '%ftp_username' => $this->ftp_username);
@@ -369,11 +306,10 @@ class ftpx_instance {
       $status_array = array('status' => 'AFFIRMATIVE', 'flag' => 'CHDIR');
       $message = "FTP connection  %ftp_host chdir to %ftp_directory";
       $status_array['ftp_data'] = "Host:  %ftp_host;  Dir: %ftp_directory";
-      // watchdog('ftp_export', $message, array('%ftp_host' => $this->ftp_host, '%ftp_directory' => $this->ftp_directory));
       $variables = array('%ftp_host' => $this->ftp_host,
           '%ftp_directory' => $this->ftp_directory);
       load_watchdog(__FUNCTION__, $status_array, $variables);
-}
+    }
   }
 
   if (empty($error_message)) {
@@ -390,11 +326,6 @@ class ftpx_instance {
         $status_array = array('status' => 'NEGATIVE', 'flag' => 'PUT');
         $error_message = "Failed! FTP upload %source_file to %ftp_host as %destination_file";
         $status_array['ftp_data'] = "Source: %source_file; Host: %ftp_host; Destination: %destination_file;";
-        // watchdog('ftp_export', $error_message, array(
-        //   '%ftp_host' => $this->ftp_host,
-        //   '%source_file' => $source_file,
-        //   '%destination_file' => $destination_file),
-        // WATCHDOG_ERROR);
         $variables =  array(
           '%ftp_host' => $this->ftp_host,
           '%source_file' => $source_file,
@@ -402,13 +333,7 @@ class ftpx_instance {
         load_watchdog(__FUNCTION__, $status_array, $variables);
     } else {
         $status_array = array('status' => 'AFFIRMATIVE', 'flag' => 'PUT');
-        $message = "Succeeded! FTP upload %source_file to %ftp_host as %destination_file";
         $status_array['ftp_data'] = "Source: %source_file; Host: %ftp_host; Destination: %destination_file;";
-        // watchdog('ftp_export', $message, array(
-        //   '%ftp_host' => $this->ftp_host,
-        //   '%source_file' => $source_file,
-        //   '%destination_file' => $destination_file)
-        // );
         $variables =  array(
           '%ftp_host' => $this->ftp_host,
           '%source_file' => $source_file,
@@ -552,7 +477,7 @@ function load_watchdog($calling_function = 'ZXZ', $status = 'UNKNOWN', $variable
       break;
     case 'log_file_exists':
       if ($status == 'AFFIRMATIVE') {
-        $message = 'SKIP: ftp will be skipped as log file was found (%destination)';
+        $message = 'SKIPPED: ftp will be skipped as log file was found (%destination)';
       }else{
         $message = 'CONTINUE: ftp will continue as log file was not found (%destination)';
       }
@@ -586,7 +511,7 @@ function load_watchdog($calling_function = 'ZXZ', $status = 'UNKNOWN', $variable
       break;
     case 'ftp_put_instance':
         $flag = empty($flag) ? 'UNKNOWN FLAG' : $flag;
-        $message = $flag . ': ' . $calling_function . ' [' . $status . ']';
+        $message = $flag . ': ' . $calling_function . ' [' . $status . '] for ' . $ftp_data;
         $message .= $message_append;
         $severity = $status == 'NEGATIVE' ? WATCHDOG_ERROR : $severity;
       break;
