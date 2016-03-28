@@ -18,6 +18,7 @@ class ftpx_config {
   var $prune_email_array = array();
   var $prune_alert_email_count;
   var $prune_alert_email_array = array();
+  var $watchdog_array = array();
 
   public function __construct($time_now = 'NNULL') {
     $time_now = $time_now == 'NNULL' ? time() : $time_now;
@@ -50,6 +51,8 @@ class ftpx_config {
     $this->log_file_destination = 'public://' . $this->save_archive_uri . '/' . 'ftp_log_file_' . substr($this->stamp_start, 0, 8) . '.txt';
     return;
   }
+
+
   public function status_normalize()
   {
     $supported_status_array = array(
@@ -95,15 +98,16 @@ class ftpx_config {
   public function log_file_exists()
   {
     $log_file_exists = file_exists($this->log_file_destination);
-    if ($log_file_exists) {
-      $message = 'ftp will be skipped as log file was found (%destination)';
-    }else{
-      $message = 'ftp will continue as log file was not found (%destination)';
-    }
+    // if ($log_file_exists) {
+    //   $message = 'ftp will be skipped as log file was found (%destination)';
+    // }else{
+    //   $message = 'ftp will continue as log file was not found (%destination)';
+    // }
     // watchdog($type, $message, $variables = array(), $severity = WATCHDOG_NOTICE, $link = NULL)
-    watchdog('ftp_export', $message, array('%destination' => $this->log_file_destination));
-    $this->response .= $message . '|';
-
+    // watchdog('ftp_export', $message, array('%destination' => $this->log_file_destination));
+    // $this->response .= $message . '|';
+    $variables = array('%destination' => $this->log_file_destination);
+    load_watchdog(__FUNCTION__, $log_file_exists, $variables);
 
     return $log_file_exists;
   }
@@ -172,6 +176,7 @@ class ftpx_instance {
   var $ftp_username;
   var $ftp_password;
   var $ftp_port;
+  var $ftp_passive_mode = TRUE;
   var $ftp_directory;//aka path, maybe change later and if so do globally
   var $ftp_filename;
   var $ftp_fileextension;
@@ -185,13 +190,20 @@ class ftpx_instance {
   var $time_start;
   var $stamp_start;
   var $stamp_end;
+  var $watchdog_array = array();
   var $response = 'RRESPONSE_PENDING';// for $watchdog will be 'SSUCCESS' or 'EERROR Count: X;
 
-  public function __construct($time_now = 'NNULL') {
+  public function __construct($time_now = 'NNULL')
+  {
     $time_now = $time_now == 'NNULL' ? time() : $time_now;
     $this->time_start = $time_now;
     $this->stamp_start = date('YmdGis', $time_now);
     $this->stamp_end = date('YmdGis', strtotime('+1 minute',$time_now));
+
+  }
+
+  public function unpack_watchdog()
+  {
 
   }
 
@@ -340,7 +352,9 @@ class ftpx_instance {
     // upload the file
     $destination_file = $this->ftp_filename . '.' . $this->ftp_fileextension;
     $source_file = $this->save_file_object->uri;
-    ftp_pasv($connection_handle, true);
+    if ($this->ftp_passive_mode !== FALSE) {
+      ftp_pasv($connection_handle, TRUE);
+    }
     $upload = ftp_put($connection_handle, $destination_file, $source_file, FTP_BINARY);
 
     // check upload status
@@ -454,4 +468,41 @@ function ftp_stamp_parse($stamp) {
   $stamp_array['II'] = substr($stamp, 10, 2);
   $stamp_array['SS'] = substr($stamp, 12, 2);
   return $stamp_array;
+}
+
+function load_watchdog($calling_function = 'ZXZ', $status = 'UNKNOWN', $variables = array()) {
+  $type = 'ftp_export';
+  $status = $status === TRUE ? 'AFFIRMATIVE' : $status;
+  $status = $status == 'AFFIRMATIVE' ? $status : 'NEGATIVE';
+  $severity = WATCHDOG_NOTICE;
+      /**
+     *
+     * WATCHDOG_EMERGENCY: Emergency, system is unusable.
+     * WATCHDOG_ALERT: Alert, action must be taken immediately.
+     * WATCHDOG_CRITICAL: Critical conditions.
+     * WATCHDOG_ERROR: Error conditions.
+     * WATCHDOG_WARNING: Warning conditions.
+     * WATCHDOG_NOTICE: (default) Normal but significant conditions.
+     * WATCHDOG_INFO: Informational messages.
+     * WATCHDOG_DEBUG: Debug-level messages
+     */
+  $link = NULL;
+
+  switch ($calling_function) {
+    case 'log_file_exists':
+      if ($status == 'AFFIRMATIVE') {
+        $message = 'SKIP: ftp will be skipped as log file was found (%destination)';
+      }else{
+        $message = 'CONTINUE: ftp will continue as log file was not found (%destination)';
+      }
+      break;
+
+    default:
+      $severity = WATCHDOG_ERROR;
+      $message = 'UNSUPPORTED FUNCTION: ' . $calling_function;
+      break;
+  }
+  if ($severity !== 'WATCHDOG_SKIP') {
+    watchdog($type, $message, $variables, $severity, $link);
+  }
 }

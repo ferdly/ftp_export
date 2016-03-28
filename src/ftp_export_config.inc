@@ -5,6 +5,11 @@
  * * so below will check for pre-set params, else dev
  * * values below should mirror Class: ftpx_config, Method: status_normalize(), Line: ~ 35
  */
+
+$server_status = !isset($_ENV['PANTHEON_ENVIRONMENT']) ? 'DEV' : strtoupper($_ENV['PANTHEON_ENVIRONMENT']);
+$server_status = $server_status == 'LIVE' ? 'LIVE' : 'DEV';
+$content_status = $server_status == 'LIVE' ? 'LIVE' : 'DEV';
+
 $supported_status_array = array(
     'DEV',
     'DEVEL',
@@ -115,6 +120,7 @@ function _server_status_config(ftpx_instance $ftp_export_instance_this, $commonn
         #\_ add $combo_key case-block as needed, case-default catches any not entered
         case 'carsoup_to_dev':
             $ftp_export_instance_this->ftp_to_from = $which;
+            $ftp_export_instance_this->ftp_passive_mode = TRUE;
             $ftp_export_instance_this->ftp_combo_key_array[] = $combo_key;
             $ftp_export_instance_this->ftp_host = "skerbitz.org";
             $ftp_export_instance_this->ftp_username = "brad";
@@ -132,6 +138,42 @@ function _server_status_config(ftpx_instance $ftp_export_instance_this, $commonn
 
         case 'findcars_to_dev':
             $ftp_export_instance_this->ftp_to_from = $which;
+            $ftp_export_instance_this->ftp_passive_mode = TRUE;
+            $ftp_export_instance_this->ftp_combo_key_array[] = $combo_key;
+            $ftp_export_instance_this->ftp_host = "skerbitz.org"; //
+            $ftp_export_instance_this->ftp_username = "brad";
+            $ftp_export_instance_this->ftp_password = "netGhaj8";
+            $ftp_export_instance_this->ftp_port = 21;
+            $ftp_export_instance_this->ftp_directory = "files";
+            $ftp_export_instance_this->save_uri = "ftp_archive";
+            $ftp_export_instance_this->save_filename = "FC_HTMotors_{STAMP_DASH_T}";
+            $ftp_export_instance_this->save_fileextension = "txt";
+            $ftp_export_instance_this->ftp_filename = "qiq_inventory";
+            $ftp_export_instance_this->ftp_fileextension = "txt";
+            $ftp_export_instance_this->save_callback_view_name = 'ttc_second';
+            $ftp_export_instance_this->save_callback_view_display_id = 'views_data_export_1';
+            break;
+        case 'carsoup_to_live':
+            $ftp_export_instance_this->ftp_to_from = $which;
+            $ftp_export_instance_this->ftp_passive_mode = TRUE;
+            $ftp_export_instance_this->ftp_combo_key_array[] = $combo_key;
+            $ftp_export_instance_this->ftp_host = "skerbitz.org";
+            $ftp_export_instance_this->ftp_username = "brad";
+            $ftp_export_instance_this->ftp_password = "netGhaj8";
+            $ftp_export_instance_this->ftp_port = 21;
+            $ftp_export_instance_this->ftp_directory = "files";
+            $ftp_export_instance_this->save_uri = "ftp_archive";
+            $ftp_export_instance_this->save_filename = "CS_HTMotors_{STAMP_DASH_T}";
+            $ftp_export_instance_this->save_fileextension = "txt";
+            $ftp_export_instance_this->ftp_filename = "CS_HTMotors_{STAMP_DASH_T}";
+            $ftp_export_instance_this->ftp_fileextension = "txt";
+            $ftp_export_instance_this->save_callback_view_name = 'ttc_first';
+            $ftp_export_instance_this->save_callback_view_display_id = 'views_data_export_1';
+            break;
+
+        case 'findcars_to_live':
+            $ftp_export_instance_this->ftp_to_from = $which;
+            $ftp_export_instance_this->ftp_passive_mode = TRUE;
             $ftp_export_instance_this->ftp_combo_key_array[] = $combo_key;
             $ftp_export_instance_this->ftp_host = "skerbitz.org"; //
             $ftp_export_instance_this->ftp_username = "brad";
