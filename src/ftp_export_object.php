@@ -27,7 +27,7 @@ class ftpx_config {
      */
 
     $ftp_execute_key = 'YYYYMMDD180000';
-    // $ftp_execute_key = 'YYYYMMDD120000';
+    // $ftp_execute_key = 'YYYYMMDD110000';
     $client_contact = 'bradlowry+ftp_client@gmail.com';
     $developer_contact = 'brad@qiqgroup.com';
     $save_archive_uri = 'ftp_archive';
@@ -236,15 +236,18 @@ class ftpx_instance {
     $view_display_id = $this->save_callback_view_display_id;
 
     $data = views_embed_view($view_name, $view_display_id);
+    $status = array();
+    $status['view_name'] = $this->save_callback_view_name;
+    $status['view_display_id'] = $this->save_callback_view_display_id;
     if (empty($data)) {
-      $status = 'NEGATIVE';
+      $status['status'] = 'NEGATIVE';
       $option_array = array();
       $option_array['STAMP'] = $this->stamp_start;
       $option_array['NOW'] = $this->time_start;
       $data = "views_embed_view('ttc_first', 'views_data_export_1') FAILED! Content set within method '" . __FUNCTION__ . "'to FTP set on {DATE_TIME_FULL}";
       $data = ftp_export_smarty_string($data, $option_array);
     }else{
-      $status = 'AFFIRMATIVE';
+      $status['status'] = 'AFFIRMATIVE';
     }
     load_watchdog(__FUNCTION__, $status);
     return $data;
@@ -492,12 +495,12 @@ function load_watchdog($calling_function = 'ZXZ', $status = 'UNKNOWN', $variable
       }
       break;
     case 'gather_data_to_ftp':
-      $message = $calling_function . ' AS: views_embed_view($view_name, $view_display_id)';
+      $message = $calling_function . ' AS: views_embed_view(' . $view_name . ', ' . $view_display_id . ')';
       if ($status == 'AFFIRMATIVE') {
         $message = $status . ': ' . $message;
       }else{
         $severity = WATCHDOG_ERROR;
-        $message = 'ERROR' . ': ' . $message . 'DUMMY $data written';
+        $message = 'ERROR' . ': ' . $message . ' DUMMY $data written';
       }
       break;
     case 'generate_file_to_transfer':
