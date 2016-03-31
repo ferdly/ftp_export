@@ -132,8 +132,8 @@ function _server_status_config(ftpx_instance $ftp_export_instance_this, $commonn
             $ftp_export_instance_this->save_fileextension = "txt";
             $ftp_export_instance_this->ftp_filename = "CS_HTMotors_{STAMP_DASH_T}";
             $ftp_export_instance_this->ftp_fileextension = "txt";
-            $ftp_export_instance_this->save_callback_view_name = 'ttc_first';
-            $ftp_export_instance_this->save_callback_view_display_id = 'views_data_export_1';
+            $ftp_export_instance_this->save_callback_view_name = 'carsoup_export';
+            $ftp_export_instance_this->save_callback_view_display_id = 'views_data_export_2';
             break;
 
         case 'findcars_to_dev':
@@ -150,8 +150,8 @@ function _server_status_config(ftpx_instance $ftp_export_instance_this, $commonn
             $ftp_export_instance_this->save_fileextension = "txt";
             $ftp_export_instance_this->ftp_filename = "qiq_inventory";
             $ftp_export_instance_this->ftp_fileextension = "txt";
-            $ftp_export_instance_this->save_callback_view_name = 'ttc_second';
-            $ftp_export_instance_this->save_callback_view_display_id = 'views_data_export_1';
+            $ftp_export_instance_this->save_callback_view_name = 'findcars_export';
+            $ftp_export_instance_this->save_callback_view_display_id = 'views_data_export_2';
             break;
         case 'carsoup_to_live':
             $ftp_export_instance_this->ftp_to_from = $which;
@@ -167,8 +167,8 @@ function _server_status_config(ftpx_instance $ftp_export_instance_this, $commonn
             $ftp_export_instance_this->save_fileextension = "txt";
             $ftp_export_instance_this->ftp_filename = "CS_HTMotors_{STAMP_DASH_T}";
             $ftp_export_instance_this->ftp_fileextension = "txt";
-            $ftp_export_instance_this->save_callback_view_name = 'ttc_first';
-            $ftp_export_instance_this->save_callback_view_display_id = 'views_data_export_1';
+            $ftp_export_instance_this->save_callback_view_name = 'carsoup_export';
+            $ftp_export_instance_this->save_callback_view_display_id = 'views_data_export_2';
             break;
 
         case 'findcars_to_live':
@@ -185,8 +185,8 @@ function _server_status_config(ftpx_instance $ftp_export_instance_this, $commonn
             $ftp_export_instance_this->save_fileextension = "txt";
             $ftp_export_instance_this->ftp_filename = "qiq_inventory";
             $ftp_export_instance_this->ftp_fileextension = "txt";
-            $ftp_export_instance_this->save_callback_view_name = 'ttc_second';
-            $ftp_export_instance_this->save_callback_view_display_id = 'views_data_export_1';
+            $ftp_export_instance_this->save_callback_view_name = 'findcars_export';
+            $ftp_export_instance_this->save_callback_view_display_id = 'views_data_export_2';
             break;
 
         default:
